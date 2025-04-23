@@ -275,12 +275,12 @@ h1 {
     }
 
     .editor-header input[type="text"] {
-        width: 100%;
+        width: 60%;
         margin-right: 0;
     }
 
     .editor-actions {
-        width: 100%;
+        width: 60%;
         justify-content: flex-end;
     }
 

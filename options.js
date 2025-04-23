@@ -30,6 +30,8 @@
             // Initialize the editor
             this.editor = ace.edit("scriptCode");
             
+
+
             // Load the theme
             ace.require("ace/theme/cobalt");
             this.editor.setTheme("ace/theme/cobalt");
@@ -38,6 +40,10 @@
             ace.require("ace/mode/javascript");
             const JavaScriptMode = ace.require("ace/mode/javascript").Mode;
             this.editor.session.setMode(new JavaScriptMode());
+            ace.edit(editor, {
+                theme: "ace/theme/cobalt",
+                mode: "ace/mode/javascript",
+              });
             
             // Configure editor options
             this.editor.setOptions({
