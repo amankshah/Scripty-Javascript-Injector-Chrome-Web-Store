@@ -192,10 +192,7 @@
                     };
                 `.replace(/\s+/g, " ").trim();
 
-                if (trigger.type === CONFIG.triggerType.manual) {
-                    world = "MAIN";
-                    runAt = "document_end";
-                } else if (trigger.type === CONFIG.triggerType.automatic) {
+                if (trigger.type === CONFIG.triggerType.automatic) {
                     wrappedScript += `window._scripty["${id}"]()`;
                     runAt = trigger.value === CONFIG.triggerValue.beforeload ? "document_start" : "document_end";
                 }
@@ -239,42 +236,48 @@
 
             return scripts.filter(script => {
                 if (script.disable) return false;
-                if (script.trigger.type !== options.type && options.type !== "all") return false;
-                if (options.type === CONFIG.triggerType.automatic && options.value !== script.trigger.value) return false;
+                
+                // Always show manual scripts in the popup
+                if (script.trigger.type === CONFIG.triggerType.manual) return true;
+                
+                // For automatic scripts, check if they match the current URL
+                if (script.trigger.type === CONFIG.triggerType.automatic) {
+                    if (script.filter.value === "all" || script.filter.value === "") return true;
 
-                if (script.filter.value === "all" || script.filter.value === "") return true;
+                    let valueToMatch;
+                    if (["pattern", "path", "host"].includes(script.filter.identifier)) {
+                        return (script.filter.matches || []).some(match => 
+                            new URLPatternMatcher().matchPattern(url, match)
+                        );
+                    }
 
-                let valueToMatch;
-                if (["pattern", "path", "host"].includes(script.filter.identifier)) {
-                    return (script.filter.matches || []).some(match => 
-                        new URLPatternMatcher().matchPattern(url, match)
-                    );
+                    switch (script.filter.identifier) {
+                        case "url":
+                            valueToMatch = urlObj.href;
+                            break;
+                        case "path":
+                            valueToMatch = urlObj.pathname;
+                            break;
+                        case "host":
+                            valueToMatch = urlObj.hostname;
+                            break;
+                    }
+
+                    switch (script.filter.condition) {
+                        case "contains":
+                            return valueToMatch.includes(script.filter.value);
+                        case "equals":
+                            return valueToMatch === script.filter.value;
+                        case "regex":
+                            const flags = script.filter.value.replace(/.*\/([gimy]*)$/, "$1");
+                            const pattern = script.filter.value.replace(new RegExp("^/(.*?)/" + flags + "$"), "$1");
+                            return new RegExp(pattern, flags).test(valueToMatch);
+                        default:
+                            return false;
+                    }
                 }
-
-                switch (script.filter.identifier) {
-                    case "url":
-                        valueToMatch = urlObj.href;
-                        break;
-                    case "path":
-                        valueToMatch = urlObj.pathname;
-                        break;
-                    case "host":
-                        valueToMatch = urlObj.hostname;
-                        break;
-                }
-
-                switch (script.filter.condition) {
-                    case "contains":
-                        return valueToMatch.includes(script.filter.value);
-                    case "equals":
-                        return valueToMatch === script.filter.value;
-                    case "regex":
-                        const flags = script.filter.value.replace(/.*\/([gimy]*)$/, "$1");
-                        const pattern = script.filter.value.replace(new RegExp("^/(.*?)/" + flags + "$"), "$1");
-                        return new RegExp(pattern, flags).test(valueToMatch);
-                    default:
-                        return false;
-                }
+                
+                return false;
             });
         }
 
@@ -282,36 +285,34 @@
             return scripts.find(script => script.id === id);
         }
 
-        handleScriptRun(scripts, scriptId, tabId, script = null) {
+        async handleScriptRun(scripts, scriptId, tabId, script = null) {
             if (!script) {
                 script = this.getScriptById(scripts, scriptId);
             }
 
             if (script && typeof script === "object") {
-                CONFIG.browserClient.scripting.executeScript({
-                    target: { tabId },
-                    func: scriptId => {
-                        if (typeof window._scripty?.[scriptId] === "function") {
-                            window._scripty[scriptId]();
-                        } else {
-                            console.error(`Scripty: Script "${scriptId}" could not be executed.
-
-This could be because:
-1. There might be syntax errors in the script
-2. The script might have been disabled or deleted
-3. Try reloading the page
-4. Semicolons might be missing in the script
-
-Please check the script and try again.`);
-                        }
-                    },
-                    world: "MAIN",
-                    args: [scriptId]
-                }, error => {
-                    if (error) {
-                        console.error(CONFIG.browserClient.runtime.lastError);
-                    }
-                });
+                // Close the popup immediately
+                window.close();
+                
+                try {
+                    // Execute the script in the MAIN world
+                    await CONFIG.browserClient.scripting.executeScript({
+                        target: { tabId },
+                        world: "MAIN",
+                        func: (scriptCode) => {
+                            try {
+                                // Create a new function from the script code and execute it
+                                const executeScript = new Function(scriptCode);
+                                executeScript();
+                            } catch (error) {
+                                console.error("Error executing script:", error);
+                            }
+                        },
+                        args: [script.script.value]
+                    });
+                } catch (error) {
+                    console.error("Error executing script:", error);
+                }
             }
         }
     }
@@ -358,16 +359,17 @@ Please check the script and try again.`);
 
         getPopupScriptButton(script) {
             const triggerType = script.trigger.type;
+            const isManual = triggerType === CONFIG.triggerType.manual;
             return `
                 <div class="script-item">
-                    <div class="play-wrap scriptButton" data-sid="${script.id}">
+                    <div class="play-wrap scriptButton ${isManual ? 'manual' : 'automatic'}" data-sid="${script.id}">
                         <svg class="play" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                             <path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM7 6l8 4-8 4V6z"/>
                         </svg>
                         <div class="title">${script.title}</div>
                     </div>
-                    <span class="mode ${triggerType}" title="Triggers ${triggerType ? "Manually" : "Automatically"}">
-                        ${triggerType}
+                    <span class="mode ${triggerType}" title="Triggers ${isManual ? "Manually" : "Automatically"}">
+                        ${isManual ? "Manual" : "Auto"}
                     </span>
                     <svg class="edit" data-sid="${script.id}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                         <path d="M12.3 3.7l4 4L4 20H0v-4L12.3 3.7zm1.4-1.4L16 0l4 4-2.3 2.3-4-4z"/>
@@ -380,14 +382,26 @@ Please check the script and try again.`);
             const scriptManager = new ScriptManager();
             document.querySelector("#popupRoot").addEventListener("click", event => {
                 const target = event.target;
+                const scriptButton = target.closest(CONFIG.selectors.scriptButton);
+                const editButton = target.closest(CONFIG.selectors.editButton);
+                const viewAllButton = target.closest(CONFIG.selectors.viewall);
                 
-                if (target.matches(CONFIG.selectors.scriptButton)) {
-                    scriptManager.handleScriptRun(this.scriptArray, target.dataset.sid, this.tabId);
-                } else if (target.matches(CONFIG.selectors.editButton)) {
+                if (scriptButton) {
+                    const scriptId = scriptButton.dataset.sid;
+                    scriptManager.handleScriptRun(this.scriptArray, scriptId, this.tabId);
+                } else if (editButton) {
+                    const scriptId = editButton.dataset.sid;
+                    CONFIG.browserClient.runtime.openOptionsPage();
+                    // Send message to options page to edit specific script
+                    CONFIG.browserClient.runtime.sendMessage({
+                        action: "editScript",
+                        scriptId: scriptId
+                    });
+                } else if (viewAllButton) {
+                    // Close popup and open options page
+                    window.close();
                     CONFIG.browserClient.runtime.openOptionsPage();
                 } else if (target.matches(CONFIG.selectors.addNewScriptButton)) {
-                    CONFIG.browserClient.runtime.openOptionsPage();
-                } else if (target.matches(CONFIG.selectors.viewall)) {
                     CONFIG.browserClient.runtime.openOptionsPage();
                 } else if (target.matches(CONFIG.selectors.downloadScript)) {
                     CONFIG.browserClient.runtime.openOptionsPage();

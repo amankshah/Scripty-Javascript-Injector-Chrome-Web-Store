@@ -81,9 +81,7 @@
                     id,
                     matches,
                     world: "MAIN",
-                    runAt: trigger.type === CONFIG.triggerType.automatic && 
-                           trigger.value === CONFIG.triggerValue.beforeload ? 
-                           "document_start" : "document_end",
+                    runAt: "document_end",
                     js: [{ code: wrappedScript }]
                 };
 
@@ -152,6 +150,12 @@
                             .then(sendResponse)
                             .catch(error => sendResponse({ success: false, error }));
                         return true;
+
+                    case "executeScript":
+                        this.executeScript(message.scriptId, message.tabId)
+                            .then(sendResponse)
+                            .catch(error => sendResponse({ success: false, error }));
+                        return true;
                 }
             });
         }
@@ -162,7 +166,7 @@
                     const matchingScripts = this.scripts.filter(script => 
                         !script.disable && 
                         script.trigger.type === CONFIG.triggerType.automatic &&
-                        script.filter.matches && // Add check for matches existence
+                        script.filter.matches &&
                         script.filter.matches.some(match => 
                             new URLPatternMatcher().matchPattern(tab.url, match)
                         )
@@ -186,6 +190,33 @@
                     }
                 }
             });
+        }
+
+        async executeScript(scriptId, tabId) {
+            try {
+                const script = this.scripts.find(s => s.id === scriptId);
+                if (!script || script.disable) {
+                    return { success: false, error: "Script not found or disabled" };
+                }
+
+                await CONFIG.browserClient.scripting.executeScript({
+                    target: { tabId },
+                    func: scriptId => {
+                        if (typeof window._scripty?.[scriptId] === "function") {
+                            window._scripty[scriptId]();
+                        } else {
+                            console.error(`Scripty: Script "${scriptId}" could not be executed.`);
+                        }
+                    },
+                    world: "MAIN",
+                    args: [scriptId]
+                });
+
+                return { success: true };
+            } catch (error) {
+                console.error(`Failed to execute script ${scriptId}:`, error);
+                return { success: false, error };
+            }
         }
 
         async saveScript(script) {

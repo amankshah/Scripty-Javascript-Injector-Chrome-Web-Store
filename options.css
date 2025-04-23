@@ -1,101 +1,167 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     margin: 0;
-    padding: 0;
+    padding: 20px;
     background-color: #f5f5f5;
+    color: #333;
 }
 
 #optionsRoot {
-    max-width: 1200px;
+    max-width: 800px;
     margin: 0 auto;
-    padding: 20px;
 }
 
 header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 20px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
 }
 
 h1 {
     margin: 0;
-    color: #333;
+    color: #2c3e50;
+    font-size: 24px;
+}
+
+.primary-button, .secondary-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .primary-button {
-    background-color: #38b2ac;
+    background-color: #3498db;
     color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    font-weight: 600;
 }
 
 .primary-button:hover {
-    background-color: #319795;
+    background-color: #2980b9;
 }
 
 .secondary-button {
-    background-color: #e2e8f0;
-    color: #4a5568;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 600;
+    background-color: #ecf0f1;
+    color: #2c3e50;
 }
 
 .secondary-button:hover {
-    background-color: #cbd5e0;
+    background-color: #dde4e6;
 }
 
 .icon {
     width: 20px;
     height: 20px;
-    margin-right: 8px;
 }
 
 .script-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
 }
 
 .script-item {
     background: white;
     border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.script-item h3 {
-    margin: 0 0 10px 0;
-    color: #2d3748;
-}
-
-.script-item .script-info {
-    color: #718096;
-    font-size: 14px;
-    margin-bottom: 15px;
-}
-
-.script-item .actions {
+    padding: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     display: flex;
-    gap: 10px;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s ease;
+}
+
+.script-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.script-info {
+    flex: 1;
+}
+
+.script-info h3 {
+    margin: 0 0 4px 0;
+    color: #2c3e50;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.script-info p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 12px;
+}
+
+.script-type {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.script-type.manual {
+    background-color: #3498db;
+    color: white;
+}
+
+.script-type.automatic {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.script-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.edit-script, .delete-script {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.edit-script {
+    background-color: #3498db;
+    color: white;
+}
+
+.edit-script:hover {
+    background-color: #2980b9;
+}
+
+.delete-script {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.delete-script:hover {
+    background-color: #c0392b;
 }
 
 .script-editor {
     background: white;
     border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    margin-top: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .editor-header {
@@ -105,60 +171,111 @@ h1 {
     margin-bottom: 20px;
 }
 
-#scriptTitle {
+.editor-header input[type="text"] {
     flex: 1;
-    padding: 10px;
-    border: 1px solid #e2e8f0;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
     border-radius: 4px;
-    margin-right: 20px;
+    font-size: 16px;
+    margin-right: 16px;
 }
 
 .editor-actions {
     display: flex;
-    gap: 10px;
+    gap: 8px;
 }
 
 .script-settings {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
+    display: flex;
+    gap: 16px;
     margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
 .setting-group {
+    display: grid;
+    gap: 8px;
+}
+
+.setting-group.inline {
     display: flex;
-    flex-direction: column;
-    gap: 5px;
+    align-items: center;
+    gap: 8px;
 }
 
 .setting-group label {
-    font-size: 14px;
-    color: #4a5568;
+    font-weight: 500;
+    color: #2c3e50;
+    white-space: nowrap;
 }
 
 .setting-group select,
-.setting-group input {
-    padding: 8px;
-    border: 1px solid #e2e8f0;
+.setting-group input[type="text"] {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
     border-radius: 4px;
+    font-size: 14px;
 }
 
 #scriptCode {
     width: 100%;
-    height: 400px;
-    padding: 15px;
-    border: 1px solid #e2e8f0;
+    height: 300px;
+    padding: 12px;
+    border: 1px solid #ddd;
     border-radius: 4px;
-    font-family: 'Fira Code', 'Consolas', 'Monaco', 'Andale Mono', monospace;
+    font-family: monospace;
     font-size: 14px;
-    line-height: 1.5;
     resize: vertical;
-    background-color: #f8fafc;
-    color: #2d3748;
 }
 
-#scriptCode:focus {
-    outline: none;
-    border-color: #38b2ac;
-    box-shadow: 0 0 0 2px rgba(56, 178, 172, 0.2);
+@media (max-width: 600px) {
+    header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .script-list {
+        grid-template-columns: 1fr;
+    }
+
+    .script-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .script-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .editor-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .editor-header input[type="text"] {
+        width: 100%;
+        margin-right: 0;
+    }
+
+    .editor-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .script-settings {
+        flex-direction: column;
+    }
+
+    .setting-group.inline {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 } 

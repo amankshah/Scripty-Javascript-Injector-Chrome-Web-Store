@@ -2,19 +2,27 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Scripty Options</title>
+    <title>Scripty Scripts</title>
     <link rel="stylesheet" href="options.css">
 </head>
 <body>
     <div id="optionsRoot">
         <header>
-            <h1>Scripty Options</h1>
-            <button id="addNewScript" class="primary-button">
-                <svg viewBox="0 0 24 24" class="icon">
-                    <path fill="#FFFFFF" d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
-                </svg>
-                Add New Script
-            </button>
+            <h1>Scripty Scripts</h1>
+            <div class="header-actions">
+                <button id="viewAllScripts" class="secondary-button">
+                    <svg viewBox="0 0 24 24" class="icon">
+                        <path fill="currentColor" d="M12,4.5C7,4.5,2.73,7.61,1,12c1.73,4.39,6,7.5,11,7.5s9.27-3.11,11-7.5C21.27,7.61,17,4.5,12,4.5z M12,17c-2.76,0-5-2.24-5-5s2.24-5,5-5s5,2.24,5,5S14.76,17,12,17z M12,9c-1.66,0-3,1.34-3,3s1.34,3,3,3s3-1.34,3-3S13.66,9,12,9z"/>
+                    </svg>
+                    View All Scripts
+                </button>
+                <button id="addNewScript" class="primary-button">
+                    <svg viewBox="0 0 24 24" class="icon">
+                        <path fill="#FFFFFF" d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+                    </svg>
+                    Add New Script
+                </button>
+            </div>
         </header>
 
         <div class="script-list">
@@ -31,7 +39,7 @@
             </div>
             
             <div class="script-settings">
-                <div class="setting-group">
+                <div class="setting-group inline">
                     <label>Trigger Type:</label>
                     <select id="triggerType">
                         <option value="m">Manual</option>
@@ -39,7 +47,7 @@
                     </select>
                 </div>
                 
-                <div class="setting-group">
+                <div class="setting-group inline">
                     <label>Trigger Value:</label>
                     <select id="triggerValue">
                         <option value="pageload">Page Load</option>
@@ -47,7 +55,7 @@
                     </select>
                 </div>
 
-                <div class="setting-group">
+                <div class="setting-group inline">
                     <label>URL Pattern:</label>
                     <input type="text" id="urlPattern" placeholder="*://*.google.com/*" 
                            title="Format: *://*.domain.com/*&#10;Examples:&#10;*://*.google.com/*&#10;*://*.youtube.com/*&#10;*://*/* (for all sites)">
