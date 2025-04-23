@@ -80,12 +80,8 @@
 
         async registerScript(script) {
             try {
-                if (this.scriptCache.has(script.id)) {
-                    const cached = this.scriptCache.get(script.id);
-                    if (cached.version === script.version) {
-                        return true;
-                    }
-                }
+                // Always unregister first to ensure clean state
+                await this.unregisterScript(script.id);
 
                 const matches = new URLPatternMatcher(
                     script.filter.identifier,
@@ -103,16 +99,13 @@
                     }]
                 };
 
-                const isRegistered = await this.isScriptRegistered(script.id);
-                if (isRegistered) {
-                    await CONFIG.browserClient.userScripts.update([scriptConfig]);
-                } else {
-                    await CONFIG.browserClient.userScripts.register([scriptConfig]);
-                }
+                await CONFIG.browserClient.userScripts.register([scriptConfig]);
 
+                // Update cache
                 this.scriptCache.set(script.id, {
                     version: script.version || Date.now(),
-                    config: scriptConfig
+                    config: scriptConfig,
+                    script: script
                 });
 
                 return true;
@@ -233,10 +226,13 @@
                 // Check for new or updated scripts
                 const updates = newScripts.filter(newScript => {
                     const oldScript = this.scripts.find(s => s.id === newScript.id);
-                    return !oldScript || oldScript.version !== newScript.version;
+                    return !oldScript || 
+                           oldScript.version !== newScript.version || 
+                           oldScript.script.value !== newScript.script.value;
                 });
 
                 if (updates.length > 0) {
+                    console.log('Scripts updated:', updates);
                     this.scripts = newScripts;
                     await this.registerAllScripts();
                     this.notifyPopupUpdate();
@@ -257,46 +253,70 @@
 
             CONFIG.browserClient.tabs.onCreated.addListener(async (tab) => {
                 await this.checkForUpdates();
+                if (tab.url && !tab.url.startsWith('chrome://')) {
+                    await this.executeMatchingScripts(tab);
+                }
             });
         }
 
         async executeMatchingScripts(tab) {
-            const matchingScripts = this.scripts.filter(script => {
-                if (script.disable) return false;
-                if (script.trigger.type !== CONFIG.triggerType.automatic) return false;
-                
-                if (!script.filter.matches || script.filter.matches.length === 0) return true;
-                
-                return script.filter.matches.some(match => {
-                    try {
-                        if (match === '*://*/*') return true;
-                        const pattern = match
-                            .replace(/\./g, '\\.')
-                            .replace(/\*/g, '.*')
-                            .replace(/\?/g, '.');
-                        const regex = new RegExp('^' + pattern + '$');
-                        return regex.test(tab.url);
-                    } catch (error) {
-                        console.error('Error checking URL pattern:', error);
-                        return false;
-                    }
-                });
-            });
-
-            for (const script of matchingScripts) {
-                try {
-                    await CONFIG.browserClient.scripting.executeScript({
-                        target: { tabId: tab.id },
-                        func: (scriptId) => {
-                            if (window._scripty && window._scripty[scriptId]) {
-                                window._scripty[scriptId]();
-                            }
-                        },
-                        args: [script.id]
+            try {
+                const matchingScripts = this.scripts.filter(script => {
+                    if (script.disable) return false;
+                    if (script.trigger.type !== CONFIG.triggerType.automatic) return false;
+                    
+                    if (!script.filter.matches || script.filter.matches.length === 0) return true;
+                    
+                    return script.filter.matches.some(match => {
+                        try {
+                            if (match === '*://*/*') return true;
+                            const pattern = match
+                                .replace(/\./g, '\\.')
+                                .replace(/\*/g, '.*')
+                                .replace(/\?/g, '.');
+                            const regex = new RegExp('^' + pattern + '$');
+                            return regex.test(tab.url);
+                        } catch (error) {
+                            console.error('Error checking URL pattern:', error);
+                            return false;
+                        }
                     });
-                } catch (error) {
-                    console.error(`Error executing script ${script.id} on tab ${tab.id}:`, error);
+                });
+
+                for (const script of matchingScripts) {
+                    try {
+                        // First inject the script
+                        await CONFIG.browserClient.scripting.executeScript({
+                            target: { tabId: tab.id },
+                            func: (scriptId, scriptCode) => {
+                                window._scripty = window._scripty || {};
+                                window._scripty[scriptId] = () => {
+                                    try {
+                                        eval(scriptCode);
+                                    } catch (e) {
+                                        console.error(`Scripty: Error executing script ${scriptId}:`, e);
+                                    }
+                                };
+                            },
+                            args: [script.id, script.script.value]
+                        });
+
+                        // Then execute it
+                        await CONFIG.browserClient.scripting.executeScript({
+                            target: { tabId: tab.id },
+                            func: (scriptId) => {
+                                if (window._scripty && window._scripty[scriptId]) {
+                                    window._scripty[scriptId]();
+                                }
+                            },
+                            args: [script.id]
+                        });
+                    } catch (error) {
+                        console.error(`Error executing script ${script.id} on tab ${tab.id}:`, error);
+                    }
                 }
+            } catch (error) {
+                console.error('Error executing matching scripts:', error);
             }
         }
 
