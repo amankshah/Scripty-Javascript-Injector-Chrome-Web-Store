@@ -326,20 +326,26 @@
             this.scriptManager = new ScriptManager();
             this.scriptArray = [];
             this.tabId = -1;
+            this.currentTab = null;
             this.init();
         }
 
         async init() {
-            // Get current tab
-            const [tab] = await CONFIG.browserClient.tabs.query({ active: true, currentWindow: true });
-            this.tabId = tab.id;
-            
-            // Load scripts from storage
-            const scripts = await CONFIG.browserClient.storage.local.get(null);
-            this.scriptArray = Object.values(scripts).filter(item => item.id && item.id.startsWith('script_'));
-            
-            this.setupEventListeners();
-            this.renderScriptList();
+            try {
+                // Get current tab
+                const [tab] = await CONFIG.browserClient.tabs.query({ active: true, currentWindow: true });
+                this.tabId = tab.id;
+                this.currentTab = tab;
+                
+                // Load scripts from storage
+                const scripts = await CONFIG.browserClient.storage.local.get(null);
+                this.scriptArray = Object.values(scripts).filter(item => item.id && item.id.startsWith('script_'));
+                
+                this.setupEventListeners();
+                this.renderScriptList();
+            } catch (error) {
+                console.error('Error initializing popup:', error);
+            }
         }
 
         setupEventListeners() {
@@ -362,13 +368,11 @@
                 } else if (editButton) {
                     const scriptId = editButton.dataset.sid;
                     CONFIG.browserClient.runtime.openOptionsPage();
-                    // Send message to options page to edit specific script
                     CONFIG.browserClient.runtime.sendMessage({
                         action: "editScript",
                         scriptId: scriptId
                     });
                 } else if (viewAllButton) {
-                    // Close popup and open options page
                     window.close();
                     CONFIG.browserClient.runtime.openOptionsPage();
                 } else if (target.matches(CONFIG.selectors.addNewScriptButton)) {
@@ -384,30 +388,52 @@
             if (!listElement) return;
 
             const scripts = this.scriptArray.filter(script => {
+                // Skip disabled scripts
                 if (script.disable) return false;
+
+                // Always show manual scripts
                 if (script.trigger.type === CONFIG.triggerType.manual) return true;
-                
-                // For automatic scripts, check if they match the current URL
-                if (script.filter.matches && script.filter.matches.length > 0) {
-                    return script.filter.matches.some(match => 
-                        new URLPatternMatcher().matchPattern(this.currentTab.url, match)
-                    );
+
+                // For automatic scripts, check URL patterns
+                if (script.trigger.type === CONFIG.triggerType.automatic) {
+                    // If no URL patterns are set, don't show the script
+                    if (!script.filter.matches || script.filter.matches.length === 0) return false;
+
+                    // Check if current URL matches any of the patterns
+                    return script.filter.matches.some(match => {
+                        try {
+                            // Handle wildcard patterns
+                            if (match === '*://*/*') return true;
+                            
+                            // Convert pattern to regex
+                            const pattern = match
+                                .replace(/\./g, '\\.')
+                                .replace(/\*/g, '.*')
+                                .replace(/\?/g, '.');
+                            
+                            const regex = new RegExp('^' + pattern + '$');
+                            return regex.test(this.currentTab.url);
+                        } catch (error) {
+                            console.error('Error checking URL pattern:', error);
+                            return false;
+                        }
+                    });
                 }
+
                 return false;
             });
 
             const scriptButtons = scripts.map(script => this.getPopupScriptButton(script)).join("");
             
             if (scripts.length === 0) {
-                listElement.innerHTML = '<div class="no-script-fallback">No scripts available</div>';
+                listElement.innerHTML = '<div class="no-script-fallback">No scripts available for this page</div>';
             } else {
                 listElement.innerHTML = scriptButtons;
             }
         }
 
         getPopupScriptButton(script) {
-            const triggerType = script.trigger.type;
-            const isManual = triggerType === CONFIG.triggerType.manual;
+            const isManual = script.trigger.type === CONFIG.triggerType.manual;
             return `
                 <div class="script-item">
                     <div class="play-wrap scriptButton ${isManual ? 'manual' : 'automatic'}" data-sid="${script.id}">
@@ -416,7 +442,7 @@
                         </svg>
                         <div class="title">${script.title}</div>
                     </div>
-                    <span class="mode ${triggerType}" title="Triggers ${isManual ? "Manually" : "Automatically"}">
+                    <span class="mode ${script.trigger.type}" title="Triggers ${isManual ? "Manually" : "Automatically"}">
                         ${isManual ? "Manual" : "Auto"}
                     </span>
                     <svg class="edit" data-sid="${script.id}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
