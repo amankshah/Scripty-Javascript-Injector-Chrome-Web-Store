@@ -5,6 +5,7 @@
         constructor() {
             this.scripts = [];
             this.currentScript = null;
+            this.editor = null;
             this.init();
         }
 
@@ -13,6 +14,50 @@
             this.setupMessageListeners();
             this.setupEventListeners();
             this.renderScriptList();
+            this.initializeEditor();
+        }
+
+        initializeEditor() {
+            // Wait for the DOM to be fully loaded
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => this.setupEditor());
+            } else {
+                this.setupEditor();
+            }
+        }
+
+        setupEditor() {
+            // Initialize the editor
+            this.editor = ace.edit("scriptCode");
+            
+            // Load the theme
+            ace.require("ace/theme/cobalt");
+            this.editor.setTheme("ace/theme/cobalt");
+            
+            // Load the JavaScript mode
+            ace.require("ace/mode/javascript");
+            const JavaScriptMode = ace.require("ace/mode/javascript").Mode;
+            this.editor.session.setMode(new JavaScriptMode());
+            
+            // Configure editor options
+            this.editor.setOptions({
+                fontSize: "14px",
+                enableBasicAutocompletion: true,
+                enableLiveAutocompletion: true,
+                enableSnippets: true,
+                showLineNumbers: true,
+                showGutter: true,
+                highlightActiveLine: true,
+                tabSize: 4,
+                useSoftTabs: true,
+                wrap: true,
+                autoScrollEditorIntoView: true,
+                minLines: 20,
+                maxLines: 50
+            });
+
+            // Set default value
+            this.editor.setValue("// Enter your JavaScript code here\n", -1);
         }
 
         async loadScripts() {
@@ -55,14 +100,15 @@
                 document.getElementById('triggerType').value = script.trigger.type;
                 document.getElementById('triggerValue').value = script.trigger.value;
                 document.getElementById('urlPattern').value = script.filter.value;
-                document.getElementById('scriptCode').value = script.script.value;
+                this.editor.setValue(script.script.value);
             } else {
                 document.getElementById('scriptTitle').value = '';
                 document.getElementById('triggerType').value = 'm';
                 document.getElementById('triggerValue').value = 'pageload';
-                document.getElementById('urlPattern').value = '*://*.google.com/*';
-                document.getElementById('scriptCode').value = '';
+                document.getElementById('urlPattern').value = '*://*/*';
+                this.editor.setValue('');
             }
+            this.editor.clearSelection();
         }
 
         hideEditor() {
@@ -79,7 +125,7 @@
             const triggerType = document.getElementById('triggerType').value;
             const triggerValue = document.getElementById('triggerValue').value;
             const urlPattern = document.getElementById('urlPattern').value.trim();
-            const scriptCode = document.getElementById('scriptCode').value.trim();
+            const scriptCode = this.editor.getValue().trim();
 
             if (!title || !urlPattern || !scriptCode) {
                 alert('Please fill in all required fields');

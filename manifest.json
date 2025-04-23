@@ -37,10 +37,10 @@
     "service_worker": "background.js"
   },
   "web_accessible_resources": [{
-    "resources": ["utils.js"],
+    "resources": ["utils.js", "lib/ace.js", "lib/worker-javascript.js", "lib/theme-cobalt.js"],
     "matches": ["<all_urls>"]
   }],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
   }
 }

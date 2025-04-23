@@ -80,7 +80,7 @@
 
         async registerScript(script) {
             try {
-                // Always unregister first to ensure clean state
+                // First try to unregister if it exists
                 await this.unregisterScript(script.id);
 
                 const matches = new URLPatternMatcher(
@@ -156,6 +156,11 @@
 
         async unregisterScript(scriptId) {
             try {
+                const isRegistered = await this.isScriptRegistered(scriptId);
+                if (!isRegistered) {
+                    console.debug(`Script ${scriptId} is not registered, skipping unregistration`);
+                    return true;
+                }
                 await CONFIG.browserClient.userScripts.unregister({ ids: [scriptId] });
                 this.scriptCache.delete(scriptId);
                 return true;
