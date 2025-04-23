@@ -337,6 +337,9 @@
                 this.tabId = tab.id;
                 this.currentTab = tab;
                 
+                // Check for updates first
+                await this.checkForUpdates();
+                
                 // Load scripts from storage
                 const scripts = await CONFIG.browserClient.storage.local.get(null);
                 this.scriptArray = Object.values(scripts).filter(item => item.id && item.id.startsWith('script_'));
@@ -345,42 +348,30 @@
                 this.renderScriptList();
             } catch (error) {
                 console.error('Error initializing popup:', error);
+                this.showError('Failed to load scripts');
             }
         }
 
-        setupEventListeners() {
-            // Listen for script updates from background
-            CONFIG.browserClient.runtime.onMessage.addListener((message) => {
-                if (message.action === "scriptsUpdated") {
-                    this.init(); // Reload everything when scripts are updated
-                }
-            });
+        async checkForUpdates() {
+            try {
+                await CONFIG.browserClient.runtime.sendMessage({ action: "checkForUpdates" });
+            } catch (error) {
+                console.error('Error checking for updates:', error);
+            }
+        }
 
-            document.querySelector("#popupRoot").addEventListener("click", event => {
-                const target = event.target;
-                const scriptButton = target.closest(CONFIG.selectors.scriptButton);
-                const editButton = target.closest(CONFIG.selectors.editButton);
-                const viewAllButton = target.closest(CONFIG.selectors.viewall);
-                
-                if (scriptButton) {
-                    const scriptId = scriptButton.dataset.sid;
-                    this.scriptManager.handleScriptRun(this.scriptArray, scriptId, this.tabId);
-                } else if (editButton) {
-                    const scriptId = editButton.dataset.sid;
-                    CONFIG.browserClient.runtime.openOptionsPage();
-                    CONFIG.browserClient.runtime.sendMessage({
-                        action: "editScript",
-                        scriptId: scriptId
-                    });
-                } else if (viewAllButton) {
-                    window.close();
-                    CONFIG.browserClient.runtime.openOptionsPage();
-                } else if (target.matches(CONFIG.selectors.addNewScriptButton)) {
-                    CONFIG.browserClient.runtime.openOptionsPage();
-                } else if (target.matches(CONFIG.selectors.downloadScript)) {
-                    CONFIG.browserClient.runtime.openOptionsPage();
-                }
-            });
+        showError(message) {
+            const listElement = document.querySelector("#list");
+            if (listElement) {
+                listElement.innerHTML = `
+                    <div class="error-message">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"/>
+                        </svg>
+                        <div>${message}</div>
+                    </div>
+                `;
+            }
         }
 
         renderScriptList() {
@@ -423,11 +414,17 @@
                 return false;
             });
 
-            const scriptButtons = scripts.map(script => this.getPopupScriptButton(script)).join("");
-            
             if (scripts.length === 0) {
-                listElement.innerHTML = '<div class="no-script-fallback">No scripts available for this page</div>';
+                listElement.innerHTML = `
+                    <div class="no-script-fallback">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-.464 5.535a1 1 0 10-1.415-1.414 3 3 0 01-4.242 0 1 1 0 00-1.415 1.414 5 5 0 007.072 0z"/>
+                        </svg>
+                        <div>No scripts available for this page</div>
+                    </div>
+                `;
             } else {
+                const scriptButtons = scripts.map(script => this.getPopupScriptButton(script)).join("");
                 listElement.innerHTML = scriptButtons;
             }
         }
@@ -440,7 +437,7 @@
                         <svg class="play" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                             <path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM7 6l8 4-8 4V6z"/>
                         </svg>
-                        <div class="title">${script.title}</div>
+                        <div class="title">${this.escapeHtml(script.title)}</div>
                     </div>
                     <span class="mode ${script.trigger.type}" title="Triggers ${isManual ? "Manually" : "Automatically"}">
                         ${isManual ? "Manual" : "Auto"}
@@ -450,6 +447,55 @@
                     </svg>
                 </div>
             `;
+        }
+
+        escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        setupEventListeners() {
+            // Listen for script updates from background
+            CONFIG.browserClient.runtime.onMessage.addListener((message) => {
+                if (message.action === "scriptsUpdated") {
+                    this.init(); // Reload everything when scripts are updated
+                }
+            });
+
+            // Check for updates when popup is focused
+            window.addEventListener('focus', () => {
+                this.checkForUpdates();
+            });
+
+            document.querySelector("#popupRoot").addEventListener("click", event => {
+                const target = event.target;
+                const scriptButton = target.closest(CONFIG.selectors.scriptButton);
+                const editButton = target.closest(CONFIG.selectors.editButton);
+                const viewAllButton = target.closest(CONFIG.selectors.viewall);
+                
+                if (scriptButton) {
+                    const scriptId = scriptButton.dataset.sid;
+                    this.scriptManager.handleScriptRun(this.scriptArray, scriptId, this.tabId);
+                } else if (editButton) {
+                    const scriptId = editButton.dataset.sid;
+                    CONFIG.browserClient.runtime.openOptionsPage();
+                    CONFIG.browserClient.runtime.sendMessage({
+                        action: "editScript",
+                        scriptId: scriptId
+                    });
+                } else if (viewAllButton) {
+                    window.close();
+                    CONFIG.browserClient.runtime.openOptionsPage();
+                } else if (target.matches(CONFIG.selectors.addNewScriptButton)) {
+                    CONFIG.browserClient.runtime.openOptionsPage();
+                } else if (target.matches(CONFIG.selectors.downloadScript)) {
+                    CONFIG.browserClient.runtime.openOptionsPage();
+                }
+            });
         }
     }
 

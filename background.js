@@ -22,6 +22,8 @@
     class ScriptManager {
         constructor() {
             this.scripts = [];
+            this.scriptCache = new Map();
+            this.lastUpdateTime = Date.now();
             this.init();
         }
 
@@ -35,41 +37,67 @@
         }
 
         async init() {
-            await this.loadScripts();
-            this.setupMessageListeners();
-            this.setupTabListener();
+            try {
+                await this.loadScripts();
+                this.setupMessageListeners();
+                this.setupTabListener();
+                this.setupStorageListener();
+                this.setupUpdateChecker();
+            } catch (error) {
+                console.error('Error initializing ScriptManager:', error);
+            }
+        }
+
+        setupStorageListener() {
+            CONFIG.browserClient.storage.onChanged.addListener((changes, area) => {
+                if (area === 'local') {
+                    Object.keys(changes).forEach(key => {
+                        if (key.startsWith('script_')) {
+                            this.notifyPopupUpdate();
+                        }
+                    });
+                }
+            });
         }
 
         async loadScripts() {
-            const result = await CONFIG.browserClient.storage.local.get(null);
-            this.scripts = Object.values(result).filter(item => item.id && item.id.startsWith('script_'));
-            await this.registerAllScripts();
+            try {
+                const result = await CONFIG.browserClient.storage.local.get(null);
+                this.scripts = Object.values(result).filter(item => item.id && item.id.startsWith('script_'));
+                await this.registerAllScripts();
+            } catch (error) {
+                console.error('Error loading scripts:', error);
+            }
         }
 
         async registerAllScripts() {
-            for (const script of this.scripts) {
-                if (!script.disable) {
-                    await this.registerScript(script);
-                }
-            }
+            const registrationPromises = this.scripts
+                .filter(script => !script.disable)
+                .map(script => this.registerScript(script));
+            
+            await Promise.all(registrationPromises);
         }
 
         async registerScript(script) {
             try {
+                if (this.scriptCache.has(script.id)) {
+                    const cached = this.scriptCache.get(script.id);
+                    if (cached.version === script.version) {
+                        return true;
+                    }
+                }
+
                 const matches = new URLPatternMatcher(
                     script.filter.identifier,
                     script.filter.condition,
                     script.filter.value
                 ).generate();
 
-                // Create a new object for the script configuration
                 const scriptConfig = {
                     id: script.id,
                     matches: matches,
                     world: "MAIN",
-                    runAt: script.trigger.type === CONFIG.triggerType.automatic && 
-                           script.trigger.value === CONFIG.triggerValue.beforeload ? 
-                           "document_start" : "document_end",
+                    runAt: this.getRunAtTime(script),
                     js: [{
                         code: this.getWrappedScriptCode(script)
                     }]
@@ -82,6 +110,11 @@
                     await CONFIG.browserClient.userScripts.register([scriptConfig]);
                 }
 
+                this.scriptCache.set(script.id, {
+                    version: script.version || Date.now(),
+                    config: scriptConfig
+                });
+
                 return true;
             } catch (error) {
                 console.error("Error registering script:", error);
@@ -89,17 +122,27 @@
             }
         }
 
+        getRunAtTime(script) {
+            if (script.trigger.type === CONFIG.triggerType.automatic) {
+                return script.trigger.value === CONFIG.triggerValue.beforeload ? 
+                       "document_start" : "document_end";
+            }
+            return "document_end";
+        }
+
         getWrappedScriptCode(script) {
             const scriptCode = this.handleScriptCode(script.script.value);
             let wrappedScript = `
-                window._scripty = window._scripty || {}; 
-                window._scripty["${script.id}"] = () => {
-                    try {   
-                        ${scriptCode}
-                    } catch (e) {
-                        console.error("Scripty: Error executing script: ${script.title}", e);
-                    }
-                };
+                (function() {
+                    window._scripty = window._scripty || {}; 
+                    window._scripty["${script.id}"] = () => {
+                        try {   
+                            ${scriptCode}
+                        } catch (e) {
+                            console.error("Scripty: Error executing script: ${script.title}", e);
+                        }
+                    };
+                })();
             `.replace(/\s+/g, " ").trim();
 
             if (script.trigger.type === CONFIG.triggerType.automatic) {
@@ -121,6 +164,7 @@
         async unregisterScript(scriptId) {
             try {
                 await CONFIG.browserClient.userScripts.unregister({ ids: [scriptId] });
+                this.scriptCache.delete(scriptId);
                 return true;
             } catch (error) {
                 console.error("Error unregistering script:", error);
@@ -139,32 +183,120 @@
                 // Remove from local array
                 this.scripts = this.scripts.filter(s => s.id !== scriptId);
                 
-                // Notify popup and content scripts
-                this.notifyPopupUpdate();
+                // Clean up from all tabs
+                await this.cleanupScriptFromTabs(scriptId);
                 
-                // Inject cleanup script to remove script from page
-                const tabs = await CONFIG.browserClient.tabs.query({});
-                for (const tab of tabs) {
-                    try {
-                        await CONFIG.browserClient.scripting.executeScript({
-                            target: { tabId: tab.id },
-                            func: (scriptId) => {
-                                if (window._scripty && window._scripty[scriptId]) {
-                                    delete window._scripty[scriptId];
-                                }
-                            },
-                            args: [scriptId]
-                        });
-                    } catch (error) {
-                        // Ignore errors for tabs where we can't inject
-                        console.debug(`Could not cleanup script in tab ${tab.id}:`, error);
-                    }
-                }
+                // Notify all components
+                this.notifyPopupUpdate();
                 
                 return true;
             } catch (error) {
                 console.error("Error deleting script:", error);
                 return false;
+            }
+        }
+
+        async cleanupScriptFromTabs(scriptId) {
+            const tabs = await CONFIG.browserClient.tabs.query({});
+            const cleanupPromises = tabs.map(tab => 
+                CONFIG.browserClient.scripting.executeScript({
+                    target: { tabId: tab.id },
+                    func: (scriptId) => {
+                        if (window._scripty && window._scripty[scriptId]) {
+                            delete window._scripty[scriptId];
+                        }
+                    },
+                    args: [scriptId]
+                }).catch(error => {
+                    console.debug(`Could not cleanup script in tab ${tab.id}:`, error);
+                })
+            );
+            
+            await Promise.all(cleanupPromises);
+        }
+
+        setupUpdateChecker() {
+            // Check for updates every 5 seconds
+            setInterval(async () => {
+                const currentTime = Date.now();
+                if (currentTime - this.lastUpdateTime > 5000) {
+                    await this.checkForUpdates();
+                }
+            }, 5000);
+        }
+
+        async checkForUpdates() {
+            try {
+                const result = await CONFIG.browserClient.storage.local.get(null);
+                const newScripts = Object.values(result).filter(item => item.id && item.id.startsWith('script_'));
+                
+                // Check for new or updated scripts
+                const updates = newScripts.filter(newScript => {
+                    const oldScript = this.scripts.find(s => s.id === newScript.id);
+                    return !oldScript || oldScript.version !== newScript.version;
+                });
+
+                if (updates.length > 0) {
+                    this.scripts = newScripts;
+                    await this.registerAllScripts();
+                    this.notifyPopupUpdate();
+                    this.lastUpdateTime = Date.now();
+                }
+            } catch (error) {
+                console.error('Error checking for updates:', error);
+            }
+        }
+
+        setupTabListener() {
+            CONFIG.browserClient.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+                if (changeInfo.status === 'complete') {
+                    await this.checkForUpdates();
+                    await this.executeMatchingScripts(tab);
+                }
+            });
+
+            CONFIG.browserClient.tabs.onCreated.addListener(async (tab) => {
+                await this.checkForUpdates();
+            });
+        }
+
+        async executeMatchingScripts(tab) {
+            const matchingScripts = this.scripts.filter(script => {
+                if (script.disable) return false;
+                if (script.trigger.type !== CONFIG.triggerType.automatic) return false;
+                
+                if (!script.filter.matches || script.filter.matches.length === 0) return true;
+                
+                return script.filter.matches.some(match => {
+                    try {
+                        if (match === '*://*/*') return true;
+                        const pattern = match
+                            .replace(/\./g, '\\.')
+                            .replace(/\*/g, '.*')
+                            .replace(/\?/g, '.');
+                        const regex = new RegExp('^' + pattern + '$');
+                        return regex.test(tab.url);
+                    } catch (error) {
+                        console.error('Error checking URL pattern:', error);
+                        return false;
+                    }
+                });
+            });
+
+            for (const script of matchingScripts) {
+                try {
+                    await CONFIG.browserClient.scripting.executeScript({
+                        target: { tabId: tab.id },
+                        func: (scriptId) => {
+                            if (window._scripty && window._scripty[scriptId]) {
+                                window._scripty[scriptId]();
+                            }
+                        },
+                        args: [script.id]
+                    });
+                } catch (error) {
+                    console.error(`Error executing script ${script.id} on tab ${tab.id}:`, error);
+                }
             }
         }
 
@@ -185,6 +317,9 @@
                         return true;
                     case "executeScript":
                         this.executeScript(message.scriptId, sender.tab.id).then(sendResponse);
+                        return true;
+                    case "checkForUpdates":
+                        this.checkForUpdates().then(sendResponse);
                         return true;
                 }
             });
@@ -211,38 +346,6 @@
 
         notifyPopupUpdate() {
             CONFIG.browserClient.runtime.sendMessage({ action: "scriptsUpdated" });
-        }
-
-        setupTabListener() {
-            CONFIG.browserClient.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-                if (changeInfo.status === "complete") {
-                    const matchingScripts = this.scripts.filter(script => 
-                        !script.disable && 
-                        script.trigger.type === CONFIG.triggerType.automatic &&
-                        script.filter.matches &&
-                        script.filter.matches.some(match => 
-                            new URLPatternMatcher().matchPattern(tab.url, match)
-                        )
-                    );
-
-                    for (const script of matchingScripts) {
-                        try {
-                            await CONFIG.browserClient.scripting.executeScript({
-                                target: { tabId },
-                                func: scriptId => {
-                                    if (typeof window._scripty?.[scriptId] === "function") {
-                                        window._scripty[scriptId]();
-                                    }
-                                },
-                                world: "MAIN",
-                                args: [script.id]
-                            });
-                        } catch (error) {
-                            console.error(`Failed to execute script ${script.id} on tab ${tabId}:`, error);
-                        }
-                    }
-                }
-            });
         }
 
         async executeScript(scriptId, tabId) {
