@@ -379,29 +379,22 @@
             if (!listElement) return;
 
             const scripts = this.scriptArray.filter(script => {
-                // Skip disabled scripts
                 if (script.disable) return false;
-
+                
                 // Always show manual scripts
                 if (script.trigger.type === CONFIG.triggerType.manual) return true;
-
+                
                 // For automatic scripts, check URL patterns
                 if (script.trigger.type === CONFIG.triggerType.automatic) {
-                    // If no URL patterns are set, don't show the script
                     if (!script.filter.matches || script.filter.matches.length === 0) return false;
-
-                    // Check if current URL matches any of the patterns
+                    
                     return script.filter.matches.some(match => {
                         try {
-                            // Handle wildcard patterns
                             if (match === '*://*/*') return true;
-                            
-                            // Convert pattern to regex
                             const pattern = match
                                 .replace(/\./g, '\\.')
                                 .replace(/\*/g, '.*')
                                 .replace(/\?/g, '.');
-                            
                             const regex = new RegExp('^' + pattern + '$');
                             return regex.test(this.currentTab.url);
                         } catch (error) {
@@ -410,7 +403,7 @@
                         }
                     });
                 }
-
+                
                 return false;
             });
 
