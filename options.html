@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Scripty Options</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+<body>
+    <div id="optionsRoot">
+        <header>
+            <h1>Scripty Options</h1>
+            <button id="addNewScript" class="primary-button">
+                <svg viewBox="0 0 24 24" class="icon">
+                    <path fill="#FFFFFF" d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+                </svg>
+                Add New Script
+            </button>
+        </header>
+
+        <div class="script-list">
+            <!-- Scripts will be dynamically added here -->
+        </div>
+
+        <div class="script-editor" style="display: none;">
+            <div class="editor-header">
+                <input type="text" id="scriptTitle" placeholder="Script Title">
+                <div class="editor-actions">
+                    <button id="saveScript" class="primary-button">Save</button>
+                    <button id="cancelEdit" class="secondary-button">Cancel</button>
+                </div>
+            </div>
+            
+            <div class="script-settings">
+                <div class="setting-group">
+                    <label>Trigger Type:</label>
+                    <select id="triggerType">
+                        <option value="m">Manual</option>
+                        <option value="a">Automatic</option>
+                    </select>
+                </div>
+                
+                <div class="setting-group">
+                    <label>Trigger Value:</label>
+                    <select id="triggerValue">
+                        <option value="pageload">Page Load</option>
+                        <option value="beforeload">Before Load</option>
+                    </select>
+                </div>
+
+                <div class="setting-group">
+                    <label>URL Pattern:</label>
+                    <input type="text" id="urlPattern" placeholder="*://*.google.com/*" 
+                           title="Format: *://*.domain.com/*&#10;Examples:&#10;*://*.google.com/*&#10;*://*.youtube.com/*&#10;*://*/* (for all sites)">
+                </div>
+            </div>
+
+            <textarea id="scriptCode" placeholder="Enter your JavaScript code here..."></textarea>
+        </div>
+    </div>
+    <script src="options.js"></script>
+</body>
+</html> 

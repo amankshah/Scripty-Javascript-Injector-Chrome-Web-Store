@@ -1,2 +1,423 @@
 /*! For license information please see popup.js.LICENSE.txt */
-(()=>{"use strict";var t="https://scripty.abhisheksatre.com";const e={version:"1.0.1",browserClient:chrome,selectors:{scriptButton:".scriptButton",editButton:".edit",addNewScriptButton:".add-new-script",viewall:"#viewall",downloadScript:".down-script"},scriptdb:"scriptdb",menuTitle:"Scripty",urls:{home:"".concat(t),edit:"".concat(t,"/#/edit"),create:"".concat(t,"/#/create"),welcome:"".concat(t,"/#/welcome"),store:"".concat(t,"/#/store"),devMode:"".concat(t,"/#/dev-mode")},appDomains:["localhost:8080","scripty.abhisheksatre.com"],scriptStorageKey:"script_",triggerType:{automatic:"a",manual:"m"},triggerValue:{pageload:"pageload",beforeload:"beforeload"}};function r(t){return r="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},r(t)}function n(t){return function(t){if(Array.isArray(t))return t}(t)||function(t){if("undefined"!=typeof Symbol&&null!=t[Symbol.iterator]||null!=t["@@iterator"])return Array.from(t)}(t)||function(t,e){if(t){if("string"==typeof t)return i(t,e);var r={}.toString.call(t).slice(8,-1);return"Object"===r&&t.constructor&&(r=t.constructor.name),"Map"===r||"Set"===r?Array.from(t):"Arguments"===r||/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(r)?i(t,e):void 0}}(t)||function(){throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}()}function i(t,e){(null==e||e>t.length)&&(e=t.length);for(var r=0,n=Array(e);r<e;r++)n[r]=t[r];return n}function o(t,e){for(var r=0;r<e.length;r++){var n=e[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(t,a(n.key),n)}}function a(t){var e=function(t,e){if("object"!=r(t)||!t)return t;var n=t[Symbol.toPrimitive];if(void 0!==n){var i=n.call(t,e||"default");if("object"!=r(i))return i;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===e?String:Number)(t)}(t,"string");return"symbol"==r(e)?e:e+""}var c=function(){function t(e,r,n){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,t),this.identifierType=e,this.matchType=r,this.identifier=n}return e=t,i=[{key:"matchPattern",value:function(t,e){var r=new URL(t),i=n(e.split("://")),o=i[0],a=n(i.slice(1).join("://").split("/")),c=a[0],u=o,s="/"+a.slice(1).join("/"),l=r.protocol.slice(0,-1);return!("*"!==u&&u!==l||!new RegExp("^"+c.replace(/\./g,"\\.").replace(/\*/g,".*")+"$").test(r.hostname)||!new RegExp("^"+s.replace(/\*/g,".*")+"$").test(r.pathname))}},{key:"isValidPattern",value:function(t){return/^(\*|https?|http|file):\/\/(\*|\*\.[^/*]+|[^/*]+)\/(.*)?$/.test(t)}}],(r=[{key:"generate",value:function(){var t=this.getMatch();return Array.isArray(t)?t:[t]}},{key:"getMatch",value:function(){switch(this.identifierType){case"pattern":case"url":return this.getMatchPattern();case"host":return this.generateHostPattern();case"path":return this.generatePathPattern();default:throw new Error('Invalid identifier type. Must be "host", "path", or "pattern".')}}},{key:"generateHostPattern",value:function(){if("equals"===this.matchType)return"*://".concat(this.identifier,"/*");throw new Error("Invalid match type. Only equals is supported for host.")}},{key:"generatePathPattern",value:function(){if("equals"===this.matchType){var t=this.identifier.startsWith("/")?this.identifier:"/".concat(this.identifier);return"*://*".concat(t)}if("contains"===this.matchType)return"*://*/*".concat(this.identifier,"*");throw new Error('Invalid match type. Must be "equals" or "contains".')}},{key:"generateUrlPattern",value:function(){if("equals"===this.matchType)return"*://*/".concat(this.identifier);if("contains"===this.matchType)return"*://*/*".concat(this.identifier,"*");throw new Error('Invalid match type. Must be "equals" or "contains".')}},{key:"getMatchPattern",value:function(){return this.identifier.split(",").map((function(t){return t.trim()})).filter((function(e){return t.isValidPattern(e)}))}}])&&o(e.prototype,r),i&&o(e,i),Object.defineProperty(e,"prototype",{writable:!1}),e;var e,r,i}();function u(t){return u="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},u(t)}function s(){s=function(){return e};var t,e={},r=Object.prototype,n=r.hasOwnProperty,i=Object.defineProperty||function(t,e,r){t[e]=r.value},o="function"==typeof Symbol?Symbol:{},a=o.iterator||"@@iterator",c=o.asyncIterator||"@@asyncIterator",l=o.toStringTag||"@@toStringTag";function p(t,e,r){return Object.defineProperty(t,e,{value:r,enumerable:!0,configurable:!0,writable:!0}),t[e]}try{p({},"")}catch(t){p=function(t,e,r){return t[e]=r}}function f(t,e,r,n){var o=e&&e.prototype instanceof b?e:b,a=Object.create(o.prototype),c=new C(n||[]);return i(a,"_invoke",{value:T(t,r,c)}),a}function h(t,e,r){try{return{type:"normal",arg:t.call(e,r)}}catch(t){return{type:"throw",arg:t}}}e.wrap=f;var y="suspendedStart",d="suspendedYield",v="executing",m="completed",g={};function b(){}function w(){}function _(){}var S={};p(S,a,(function(){return this}));var x=Object.getPrototypeOf,k=x&&x(x(I([])));k&&k!==r&&n.call(k,a)&&(S=k);var E=_.prototype=b.prototype=Object.create(S);function L(t){["next","throw","return"].forEach((function(e){p(t,e,(function(t){return this._invoke(e,t)}))}))}function P(t,e){function r(i,o,a,c){var s=h(t[i],t,o);if("throw"!==s.type){var l=s.arg,p=l.value;return p&&"object"==u(p)&&n.call(p,"__await")?e.resolve(p.__await).then((function(t){r("next",t,a,c)}),(function(t){r("throw",t,a,c)})):e.resolve(p).then((function(t){l.value=t,a(l)}),(function(t){return r("throw",t,a,c)}))}c(s.arg)}var o;i(this,"_invoke",{value:function(t,n){function i(){return new e((function(e,i){r(t,n,e,i)}))}return o=o?o.then(i,i):i()}})}function T(e,r,n){var i=y;return function(o,a){if(i===v)throw Error("Generator is already running");if(i===m){if("throw"===o)throw a;return{value:t,done:!0}}for(n.method=o,n.arg=a;;){var c=n.delegate;if(c){var u=j(c,n);if(u){if(u===g)continue;return u}}if("next"===n.method)n.sent=n._sent=n.arg;else if("throw"===n.method){if(i===y)throw i=m,n.arg;n.dispatchException(n.arg)}else"return"===n.method&&n.abrupt("return",n.arg);i=v;var s=h(e,r,n);if("normal"===s.type){if(i=n.done?m:d,s.arg===g)continue;return{value:s.arg,done:n.done}}"throw"===s.type&&(i=m,n.method="throw",n.arg=s.arg)}}}function j(e,r){var n=r.method,i=e.iterator[n];if(i===t)return r.delegate=null,"throw"===n&&e.iterator.return&&(r.method="return",r.arg=t,j(e,r),"throw"===r.method)||"return"!==n&&(r.method="throw",r.arg=new TypeError("The iterator does not provide a '"+n+"' method")),g;var o=h(i,e.iterator,r.arg);if("throw"===o.type)return r.method="throw",r.arg=o.arg,r.delegate=null,g;var a=o.arg;return a?a.done?(r[e.resultName]=a.value,r.next=e.nextLoc,"return"!==r.method&&(r.method="next",r.arg=t),r.delegate=null,g):a:(r.method="throw",r.arg=new TypeError("iterator result is not an object"),r.delegate=null,g)}function O(t){var e={tryLoc:t[0]};1 in t&&(e.catchLoc=t[1]),2 in t&&(e.finallyLoc=t[2],e.afterLoc=t[3]),this.tryEntries.push(e)}function A(t){var e=t.completion||{};e.type="normal",delete e.arg,t.completion=e}function C(t){this.tryEntries=[{tryLoc:"root"}],t.forEach(O,this),this.reset(!0)}function I(e){if(e||""===e){var r=e[a];if(r)return r.call(e);if("function"==typeof e.next)return e;if(!isNaN(e.length)){var i=-1,o=function r(){for(;++i<e.length;)if(n.call(e,i))return r.value=e[i],r.done=!1,r;return r.value=t,r.done=!0,r};return o.next=o}}throw new TypeError(u(e)+" is not iterable")}return w.prototype=_,i(E,"constructor",{value:_,configurable:!0}),i(_,"constructor",{value:w,configurable:!0}),w.displayName=p(_,l,"GeneratorFunction"),e.isGeneratorFunction=function(t){var e="function"==typeof t&&t.constructor;return!!e&&(e===w||"GeneratorFunction"===(e.displayName||e.name))},e.mark=function(t){return Object.setPrototypeOf?Object.setPrototypeOf(t,_):(t.__proto__=_,p(t,l,"GeneratorFunction")),t.prototype=Object.create(E),t},e.awrap=function(t){return{__await:t}},L(P.prototype),p(P.prototype,c,(function(){return this})),e.AsyncIterator=P,e.async=function(t,r,n,i,o){void 0===o&&(o=Promise);var a=new P(f(t,r,n,i),o);return e.isGeneratorFunction(r)?a:a.next().then((function(t){return t.done?t.value:a.next()}))},L(E),p(E,l,"Generator"),p(E,a,(function(){return this})),p(E,"toString",(function(){return"[object Generator]"})),e.keys=function(t){var e=Object(t),r=[];for(var n in e)r.push(n);return r.reverse(),function t(){for(;r.length;){var n=r.pop();if(n in e)return t.value=n,t.done=!1,t}return t.done=!0,t}},e.values=I,C.prototype={constructor:C,reset:function(e){if(this.prev=0,this.next=0,this.sent=this._sent=t,this.done=!1,this.delegate=null,this.method="next",this.arg=t,this.tryEntries.forEach(A),!e)for(var r in this)"t"===r.charAt(0)&&n.call(this,r)&&!isNaN(+r.slice(1))&&(this[r]=t)},stop:function(){this.done=!0;var t=this.tryEntries[0].completion;if("throw"===t.type)throw t.arg;return this.rval},dispatchException:function(e){if(this.done)throw e;var r=this;function i(n,i){return c.type="throw",c.arg=e,r.next=n,i&&(r.method="next",r.arg=t),!!i}for(var o=this.tryEntries.length-1;o>=0;--o){var a=this.tryEntries[o],c=a.completion;if("root"===a.tryLoc)return i("end");if(a.tryLoc<=this.prev){var u=n.call(a,"catchLoc"),s=n.call(a,"finallyLoc");if(u&&s){if(this.prev<a.catchLoc)return i(a.catchLoc,!0);if(this.prev<a.finallyLoc)return i(a.finallyLoc)}else if(u){if(this.prev<a.catchLoc)return i(a.catchLoc,!0)}else{if(!s)throw Error("try statement without catch or finally");if(this.prev<a.finallyLoc)return i(a.finallyLoc)}}}},abrupt:function(t,e){for(var r=this.tryEntries.length-1;r>=0;--r){var i=this.tryEntries[r];if(i.tryLoc<=this.prev&&n.call(i,"finallyLoc")&&this.prev<i.finallyLoc){var o=i;break}}o&&("break"===t||"continue"===t)&&o.tryLoc<=e&&e<=o.finallyLoc&&(o=null);var a=o?o.completion:{};return a.type=t,a.arg=e,o?(this.method="next",this.next=o.finallyLoc,g):this.complete(a)},complete:function(t,e){if("throw"===t.type)throw t.arg;return"break"===t.type||"continue"===t.type?this.next=t.arg:"return"===t.type?(this.rval=this.arg=t.arg,this.method="return",this.next="end"):"normal"===t.type&&e&&(this.next=e),g},finish:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var r=this.tryEntries[e];if(r.finallyLoc===t)return this.complete(r.completion,r.afterLoc),A(r),g}},catch:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var r=this.tryEntries[e];if(r.tryLoc===t){var n=r.completion;if("throw"===n.type){var i=n.arg;A(r)}return i}}throw Error("illegal catch attempt")},delegateYield:function(e,r,n){return this.delegate={iterator:I(e),resultName:r,nextLoc:n},"next"===this.method&&(this.arg=t),g}},e}function l(t,e,r,n,i,o,a){try{var c=t[o](a),u=c.value}catch(t){return void r(t)}c.done?e(u):Promise.resolve(u).then(n,i)}function p(t){return function(){var e=this,r=arguments;return new Promise((function(n,i){var o=t.apply(e,r);function a(t){l(o,n,i,a,c,"next",t)}function c(t){l(o,n,i,a,c,"throw",t)}a(void 0)}))}}function f(t,e){for(var r=0;r<e.length;r++){var n=e[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(t,h(n.key),n)}}function h(t){var e=function(t,e){if("object"!=u(t)||!t)return t;var r=t[Symbol.toPrimitive];if(void 0!==r){var n=r.call(t,e||"default");if("object"!=u(n))return n;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===e?String:Number)(t)}(t,"string");return"symbol"==u(e)?e:e+""}var y=function(){function t(){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,t)}return r=t,n=[{key:"createScript",value:(y=p(s().mark((function t(e){return s().wrap((function(t){for(;;)switch(t.prev=t.next){case 0:return t.next=2,this.saveScript(e);case 2:return t.abrupt("return",t.sent);case 3:case"end":return t.stop()}}),t,this)}))),function(t){return y.apply(this,arguments)})},{key:"updateScript",value:(h=p(s().mark((function t(e){return s().wrap((function(t){for(;;)switch(t.prev=t.next){case 0:return t.next=2,this.saveScript(e);case 2:return t.abrupt("return",t.sent);case 3:case"end":return t.stop()}}),t,this)}))),function(t){return h.apply(this,arguments)})},{key:"deleteScript",value:(l=p(s().mark((function t(r){return s().wrap((function(t){for(;;)switch(t.prev=t.next){case 0:return t.next=2,this.isScriptRegistered(r);case 2:if(t.t0=t.sent,!1!==t.t0){t.next=5;break}return t.abrupt("return",!1);case 5:return t.prev=5,t.next=8,e.browserClient.userScripts.unregister({ids:[r]});case 8:return t.abrupt("return",!0);case 11:t.prev=11,t.t1=t.catch(5);case 13:return t.abrupt("return",!1);case 14:case"end":return t.stop()}}),t,this,[[5,11]])}))),function(t){return l.apply(this,arguments)})},{key:"isScriptRegistered",value:(a=p(s().mark((function t(r){var n;return s().wrap((function(t){for(;;)switch(t.prev=t.next){case 0:return t.prev=0,t.next=3,e.browserClient.userScripts.getScripts({ids:[r]});case 3:return n=t.sent,t.abrupt("return",0!==n.length);case 7:t.prev=7,t.t0=t.catch(0);case 9:return t.abrupt("return",!1);case 10:case"end":return t.stop()}}),t,null,[[0,7]])}))),function(t){return a.apply(this,arguments)})},{key:"saveScript",value:(o=p(s().mark((function t(r){var n,i,o,a,u,l,p,f,h,y,d;return s().wrap((function(t){for(;;)switch(t.prev=t.next){case 0:return n=r.id,i=r.filter,o=r.trigger,a=r.disable,t.next=3,this.isScriptRegistered(n);case 3:if(u=t.sent,!a){t.next=8;break}return t.next=7,this.deleteScript(n);case 7:return t.abrupt("return",r);case 8:if(u||r.vrs){t.next=11;break}return r.disable=!0,t.abrupt("return",r);case 11:if(t.prev=11,l=new c(i.identifier,i.condition,i.value).generate(),r.filter.matches=l,p="MAIN",f="document_end",h=this.handleScriptCode(r.script.value),y='\n                window._scripty = window._scripty || {}; \n                window._scripty["'.concat(n,'"] = () => {\n                    try {   \n                        ').concat(h,'\n                    } catch (e) {\n                        console.error("Scripty: Error executing script: ').concat(r.title,'", e);\n                    }\n                };\n            ').replace(/\s+/g," ").trim(),o.type===e.triggerType.manual?(p="MAIN",f="document_end"):o.type===e.triggerType.automatic&&(y+='window._scripty["'.concat(n,'"]()'),f=o.value===e.triggerValue.beforeload?"document_start":"document_end"),d={id:n,matches:l,world:p,runAt:f,js:[{code:y}]},!u){t.next=25;break}return t.next=23,e.browserClient.userScripts.update([d]);case 23:t.next=27;break;case 25:return t.next=27,e.browserClient.userScripts.register([d]);case 27:return r.vrs=2,t.abrupt("return",r);case 31:t.prev=31,t.t0=t.catch(11),console.error("Error saving script",t.t0);case 34:return t.abrupt("return",null);case 35:case"end":return t.stop()}}),t,this,[[11,31]])}))),function(t){return o.apply(this,arguments)})},{key:"handleScriptCode",value:function(t){return t=(t=(t=(t=t.replace(/<!--[\s\S]*?-->/g,"")).replace(/(^|\s)\/\/[^\n]*/gm,"$1")).replace(/\/\*[\s\S]*?\*\//g,"")).replace(/^\s*[\r\n]/gm,"")}}],i=[{key:"getScriptsForCurrentUrl",value:function(t,r){var n=arguments.length>2&&void 0!==arguments[2]?arguments[2]:{type:e.triggerType.manual};if(!1===Array.isArray(r))return[];if(0===t.length)return[];var i=new URL(t);return function(t){return-1!==t.indexOf("chrome://")}(i.origin)?[]:r.filter((function(r){if(!0===r.disable)return!1;if(r.trigger.type!==n.type&&"all"!==n.type)return!1;if(n.type===e.triggerType.automatic&&n.value!==r.trigger.value)return!1;if("all"===r.filter.value||""===r.filter.value)return!0;var o;if(["pattern","path","host"].includes(r.filter.identifier))return(null!==(o=r.filter.matches)&&void 0!==o?o:[]).some((function(e){return c.matchPattern(t,e)}));var a=i.href;if("url"===r.filter.identifier?a=i.href:"path"===r.filter.identifier?a=i.pathname:"host"===r.filter.identifier&&(a=i.hostname),"contains"===r.filter.condition)return-1!==a.indexOf(r.filter.value);if("equals"===r.filter.condition)return a==r.filter.value;if("regex"===r.filter.condition){var u=r.filter.value.replace(/.*\/([gimy]*)$/,"$1"),s=r.filter.value.replace(new RegExp("^/(.*?)/"+u+"$"),"$1");return new RegExp(s,u).test(a)}return!1}))}},{key:"getScriptById",value:function(t,e){return t.find((function(t){return t.id==e}))}},{key:"handleScriptRun",value:function(r,n,i){var o=arguments.length>3&&void 0!==arguments[3]&&arguments[3];!1===o&&(o=t.getScriptById(r,n)),o&&"object"===u(o)&&e.browserClient.scripting.executeScript({target:{tabId:i},func:function(t){var e;"function"==typeof(null===(e=window._scripty)||void 0===e?void 0:e[t])?window._scripty[t]():console.error('Scripty: Script "'.concat(t,'" could not be executed.\n\nThis could be because:\n1. There might be syntax errors in the script\n2. The script might have been disabled or deleted\n3. Try reloading the page\n4. Semicolons might be missing in the script\n\nPlease check the script and try again.'))},world:"MAIN",args:[n]},(function(t){var r=e.browserClient.runtime.lastError;r&&JSON.stringify(r)}))}}],n&&f(r.prototype,n),i&&f(r,i),Object.defineProperty(r,"prototype",{writable:!1}),r;var r,n,i,o,a,l,h,y}();const d="getScriptListFromStorage";var v="_mnet_ad_picker";"".concat(v,"_show"),"".concat(v,"_styleshhet"),"".concat(v,"_overlay"),"".concat(v,"_container"),"".concat(v,"_frame_wrapper"),"".concat(v,"_frame"),"".concat(v,"_sidebar"),"".concat(v,"_transform_body"),"".concat(v,"_iframe_placeholder"),"".concat(v,"_popup_wrapper"),"".concat(v,"_popup_wrapper--mnetLogo"),"".concat(v,"_popup_wrapper--appLogo"),"".concat(v,"_popup_wrapper--name"),"".concat(v,"_popup_wrapper--tagline"),"".concat(v,"_signinForm"),"".concat(v,"_name"),"".concat(v,"_dontHave"),"".concat(v,"_signUpLink"),"".concat(v,"_username"),"".concat(v,"_password"),"".concat(v,"_site_list"),"".concat(v,"_go_to_site"),"".concat(v,"_inspect_hover"),"".concat(v,"_inspect_clicked"),"".concat(v,"_placement_menu"),"".concat(v,"_place_inside_settings"),"".concat(v,"_toolbar"),"".concat(v,"_header"),"".concat(v,"_subheader"),"".concat(v,"_hide"),"".concat(v,"_preview"),"".concat(v,"_publish"),"".concat(v,"_close"),"".concat(v,"_page_group_list"),"".concat(v,"_ad_unit_list"),"".concat(v,"_drop_down"),"".concat(v,"_drop_down_button"),"".concat(v,"_drop_down_list"),"".concat(v,"_drop_down_option"),"".concat(v,"_ad_placeholder_wrapper"),"".concat(v,"_ad_placeholder"),"".concat(v,"_ad_placeholder_delete"),"".concat(v,"_ad_placeholder_settings"),"".concat(v,"_properties_panel_wrapper"),"".concat(v,"_properties_panel_ad_list"),"".concat(v,"_properties_panel_placement"),"".concat(v,"_properties_panel_list--item_title"),"".concat(v,"_properties_panel_list--item_body"),"".concat(v,"_properties_panel_unit_option"),"".concat(v,"_open");function m(t){return m="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},m(t)}function g(t,e){for(var r=0;r<e.length;r++){var n=e[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(t,b(n.key),n)}}function b(t){var e=function(t,e){if("object"!=m(t)||!t)return t;var r=t[Symbol.toPrimitive];if(void 0!==r){var n=r.call(t,e||"default");if("object"!=m(n))return n;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===e?String:Number)(t)}(t,"string");return"symbol"==m(e)?e:e+""}var w=function(){return t=function t(){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,t)},r=[{key:"getPopupScriptButton",value:function(t){var e=t.trigger.type;return'<div class="script-item">\n            <div class="play-wrap scriptButton" data-sid="'.concat(t.id,'">\n                <svg class="play" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM7 6l8 4-8 4V6z"/></svg>\n                <div class="title">').concat(t.title,'</div>\n            </div>\n            <span class="mode ').concat(e,'" title="Triggers ').concat(e?"Manually":"Automatically",'">').concat(e,'</span>\n            <svg class="edit" data-sid="').concat(t.id,'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M12.3 3.7l4 4L4 20H0v-4L12.3 3.7zm1.4-1.4L16 0l4 4-2.3 2.3-4-4z"/></svg>\n        </div>')}}],(e=null)&&g(t.prototype,e),r&&g(t,r),Object.defineProperty(t,"prototype",{writable:!1}),t;var t,e,r}();function _(t){return _="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},_(t)}function S(t,e){for(var r=0;r<e.length;r++){var n=e[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(t,x(n.key),n)}}function x(t){var e=function(t,e){if("object"!=_(t)||!t)return t;var r=t[Symbol.toPrimitive];if(void 0!==r){var n=r.call(t,e||"default");if("object"!=_(n))return n;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===e?String:Number)(t)}(t,"string");return"symbol"==_(e)?e:e+""}var k=function(){return t=function t(){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,t),this.currentTab={},this.tabId=-1,this.scriptArray=[]},(r=[{key:"setTabConfig",value:function(t){this.currentTab=t,this.tabId=t.id}},{key:"setScriptArray",value:function(t){this.scriptArray=t}},{key:"renderScriptList",value:function(){var t=document.querySelector("#list"),e=y.getScriptsForCurrentUrl(this.currentTab.url,this.scriptArray,{type:"all"}),r=e.map((function(t){return w.getPopupScriptButton(t)})).join("");0!==e.length&&document.querySelector(".no-script-fallback").classList.add("bottomfix"),t.innerHTML=r}},{key:"events",value:function(){var t=this;document.querySelector("#popupRoot").addEventListener("click",(function(r){var n=r.target;n.matches(e.selectors.scriptButton)?y.handleScriptRun(t.scriptArray,n.dataset.sid,t.tabId):n.matches(e.selectors.editButton)?e.browserClient.tabs.create({url:"".concat(e.urls.edit,"/").concat(n.dataset.sid)}):n.matches(e.selectors.addNewScriptButton)?e.browserClient.tabs.create({url:"".concat(e.urls.create)}):n.matches(e.selectors.viewall)?e.browserClient.tabs.create({url:"".concat(e.urls.home)}):n.matches(e.selectors.downloadScript)&&e.browserClient.tabs.create({url:"".concat(e.urls.store)})}))}},{key:"init",value:function(){this.renderScriptList(),this.events()}}])&&S(t.prototype,r),n&&S(t,n),Object.defineProperty(t,"prototype",{writable:!1}),t;var t,r,n}();window.addEventListener("DOMContentLoaded",(function(t){var r=new k;e.browserClient.runtime.sendMessage({action:d},(function(t){r.setScriptArray(t),e.browserClient.tabs.query({active:!0,currentWindow:!0},(function(t){r.setTabConfig(t[0]),r.init()}))}))}))})();
+(() => {
+    "use strict";
+
+    // =============================================
+    // Configuration and Constants
+    // =============================================
+    const CONFIG = {
+        version: "1.0.1",
+        browserClient: chrome,
+        selectors: {
+            scriptButton: ".scriptButton",
+            editButton: ".edit",
+            addNewScriptButton: ".add-new-script",
+            viewall: "#viewall",
+            downloadScript: ".down-script"
+        },
+        scriptdb: "scriptdb",
+        menuTitle: "Scripty",
+        triggerType: {
+            automatic: "a",
+            manual: "m"
+        },
+        triggerValue: {
+            pageload: "pageload",
+            beforeload: "beforeload"
+        }
+    };
+
+    // =============================================
+    // URL Pattern Matcher Class
+    // Handles URL pattern matching for script execution
+    // =============================================
+    class URLPatternMatcher {
+        constructor(identifierType, matchType, identifier) {
+            if (!(this instanceof URLPatternMatcher)) {
+                throw new TypeError("Cannot call a class as a function");
+            }
+            this.identifierType = identifierType;
+            this.matchType = matchType;
+            this.identifier = identifier;
+        }
+
+        matchPattern(url, pattern) {
+            const urlObj = new URL(url);
+            const [protocol, ...rest] = pattern.split("://");
+            const [host, ...pathParts] = rest.join("://").split("/");
+            const path = "/" + pathParts.join("/");
+            const urlProtocol = urlObj.protocol.slice(0, -1);
+
+            return !(
+                (protocol !== "*" && protocol !== urlProtocol) ||
+                !new RegExp("^" + host.replace(/\./g, "\\.").replace(/\*/g, ".*") + "$").test(urlObj.hostname) ||
+                !new RegExp("^" + path.replace(/\*/g, ".*") + "$").test(urlObj.pathname)
+            );
+        }
+
+        isValidPattern(pattern) {
+            return /^(\*|https?|http|file):\/\/(\*|\*\.[^/*]+|[^/*]+)\/(.*)?$/.test(pattern);
+        }
+
+        generate() {
+            const match = this.getMatch();
+            return Array.isArray(match) ? match : [match];
+        }
+
+        getMatch() {
+            switch (this.identifierType) {
+                case "pattern":
+                case "url":
+                    return this.getMatchPattern();
+                case "host":
+                    return this.generateHostPattern();
+                case "path":
+                    return this.generatePathPattern();
+                default:
+                    throw new Error('Invalid identifier type. Must be "host", "path", or "pattern".');
+            }
+        }
+
+        generateHostPattern() {
+            if (this.matchType === "equals") {
+                return `*://${this.identifier}/*`;
+            }
+            throw new Error("Invalid match type. Only equals is supported for host.");
+        }
+
+        generatePathPattern() {
+            if (this.matchType === "equals") {
+                const path = this.identifier.startsWith("/") ? this.identifier : `/${this.identifier}`;
+                return `*://*${path}`;
+            }
+            if (this.matchType === "contains") {
+                return `*://*/*${this.identifier}*`;
+            }
+            throw new Error('Invalid match type. Must be "equals" or "contains".');
+        }
+
+        generateUrlPattern() {
+            if (this.matchType === "equals") {
+                return `*://*/${this.identifier}`;
+            }
+            if (this.matchType === "contains") {
+                return `*://*/*${this.identifier}*`;
+            }
+            throw new Error('Invalid match type. Must be "equals" or "contains".');
+        }
+
+        getMatchPattern() {
+            return this.identifier
+                .split(",")
+                .map(part => part.trim())
+                .filter(pattern => this.isValidPattern(pattern));
+        }
+    }
+
+    // =============================================
+    // Script Manager Class
+    // Handles script registration, execution, and management
+    // =============================================
+    class ScriptManager {
+        constructor() {
+            if (!(this instanceof ScriptManager)) {
+                throw new TypeError("Cannot call a class as a function");
+            }
+        }
+
+        async createScript(script) {
+            return this.saveScript(script);
+        }
+
+        async updateScript(script) {
+            return this.saveScript(script);
+        }
+
+        async deleteScript(scriptId) {
+            const isRegistered = await this.isScriptRegistered(scriptId);
+            if (!isRegistered) return false;
+
+            try {
+                await CONFIG.browserClient.userScripts.unregister({ ids: [scriptId] });
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        async isScriptRegistered(scriptId) {
+            try {
+                const scripts = await CONFIG.browserClient.userScripts.getScripts({ ids: [scriptId] });
+                return scripts.length !== 0;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        async saveScript(script) {
+            try {
+                const { id, filter, trigger, disable } = script;
+                const isRegistered = await this.isScriptRegistered(id);
+
+                if (disable) {
+                    await this.deleteScript(id);
+                    return script;
+                }
+
+                if (!isRegistered && !script.vrs) {
+                    script.disable = true;
+                    return script;
+                }
+
+                const matches = new URLPatternMatcher(
+                    filter.identifier,
+                    filter.condition,
+                    filter.value
+                ).generate();
+
+                script.filter.matches = matches;
+
+                let world = "MAIN";
+                let runAt = "document_end";
+                let scriptCode = this.handleScriptCode(script.script.value);
+
+                const wrappedScript = `
+                    window._scripty = window._scripty || {}; 
+                    window._scripty["${id}"] = () => {
+                        try {   
+                            ${scriptCode}
+                        } catch (e) {
+                            console.error("Scripty: Error executing script: ${script.title}", e);
+                        }
+                    };
+                `.replace(/\s+/g, " ").trim();
+
+                if (trigger.type === CONFIG.triggerType.manual) {
+                    world = "MAIN";
+                    runAt = "document_end";
+                } else if (trigger.type === CONFIG.triggerType.automatic) {
+                    wrappedScript += `window._scripty["${id}"]()`;
+                    runAt = trigger.value === CONFIG.triggerValue.beforeload ? "document_start" : "document_end";
+                }
+
+                const scriptConfig = {
+                    id,
+                    matches,
+                    world,
+                    runAt,
+                    js: [{ code: wrappedScript }]
+                };
+
+                if (isRegistered) {
+                    await CONFIG.browserClient.userScripts.update([scriptConfig]);
+                } else {
+                    await CONFIG.browserClient.userScripts.register([scriptConfig]);
+                }
+
+                script.vrs = 2;
+                return script;
+            } catch (error) {
+                console.error("Error saving script", error);
+                return null;
+            }
+        }
+
+        handleScriptCode(code) {
+            return code
+                .replace(/<!--[\s\S]*?-->/g, "")
+                .replace(/(^|\s)\/\/[^\n]*/gm, "$1")
+                .replace(/\/\*[\s\S]*?\*\//g, "")
+                .replace(/^\s*[\r\n]/gm, "");
+        }
+
+        getScriptsForCurrentUrl(url, scripts, options = { type: CONFIG.triggerType.manual }) {
+            if (!Array.isArray(scripts)) return [];
+            if (!url.length) return [];
+
+            const urlObj = new URL(url);
+            if (urlObj.origin.includes("chrome://")) return [];
+
+            return scripts.filter(script => {
+                if (script.disable) return false;
+                if (script.trigger.type !== options.type && options.type !== "all") return false;
+                if (options.type === CONFIG.triggerType.automatic && options.value !== script.trigger.value) return false;
+
+                if (script.filter.value === "all" || script.filter.value === "") return true;
+
+                let valueToMatch;
+                if (["pattern", "path", "host"].includes(script.filter.identifier)) {
+                    return (script.filter.matches || []).some(match => 
+                        new URLPatternMatcher().matchPattern(url, match)
+                    );
+                }
+
+                switch (script.filter.identifier) {
+                    case "url":
+                        valueToMatch = urlObj.href;
+                        break;
+                    case "path":
+                        valueToMatch = urlObj.pathname;
+                        break;
+                    case "host":
+                        valueToMatch = urlObj.hostname;
+                        break;
+                }
+
+                switch (script.filter.condition) {
+                    case "contains":
+                        return valueToMatch.includes(script.filter.value);
+                    case "equals":
+                        return valueToMatch === script.filter.value;
+                    case "regex":
+                        const flags = script.filter.value.replace(/.*\/([gimy]*)$/, "$1");
+                        const pattern = script.filter.value.replace(new RegExp("^/(.*?)/" + flags + "$"), "$1");
+                        return new RegExp(pattern, flags).test(valueToMatch);
+                    default:
+                        return false;
+                }
+            });
+        }
+
+        getScriptById(scripts, id) {
+            return scripts.find(script => script.id === id);
+        }
+
+        handleScriptRun(scripts, scriptId, tabId, script = null) {
+            if (!script) {
+                script = this.getScriptById(scripts, scriptId);
+            }
+
+            if (script && typeof script === "object") {
+                CONFIG.browserClient.scripting.executeScript({
+                    target: { tabId },
+                    func: scriptId => {
+                        if (typeof window._scripty?.[scriptId] === "function") {
+                            window._scripty[scriptId]();
+                        } else {
+                            console.error(`Scripty: Script "${scriptId}" could not be executed.
+
+This could be because:
+1. There might be syntax errors in the script
+2. The script might have been disabled or deleted
+3. Try reloading the page
+4. Semicolons might be missing in the script
+
+Please check the script and try again.`);
+                        }
+                    },
+                    world: "MAIN",
+                    args: [scriptId]
+                }, error => {
+                    if (error) {
+                        console.error(CONFIG.browserClient.runtime.lastError);
+                    }
+                });
+            }
+        }
+    }
+
+    // =============================================
+    // Popup UI Class
+    // Handles the popup interface and user interactions
+    // =============================================
+    class PopupUI {
+        constructor() {
+            if (!(this instanceof PopupUI)) {
+                throw new TypeError("Cannot call a class as a function");
+            }
+            this.currentTab = {};
+            this.tabId = -1;
+            this.scriptArray = [];
+        }
+
+        setTabConfig(tab) {
+            this.currentTab = tab;
+            this.tabId = tab.id;
+        }
+
+        setScriptArray(scripts) {
+            this.scriptArray = scripts;
+        }
+
+        renderScriptList() {
+            const listElement = document.querySelector("#list");
+            const scripts = new ScriptManager().getScriptsForCurrentUrl(
+                this.currentTab.url,
+                this.scriptArray,
+                { type: "all" }
+            );
+
+            const scriptButtons = scripts.map(script => this.getPopupScriptButton(script)).join("");
+            
+            if (scripts.length !== 0) {
+                document.querySelector(".no-script-fallback").classList.add("bottomfix");
+            }
+            
+            listElement.innerHTML = scriptButtons;
+        }
+
+        getPopupScriptButton(script) {
+            const triggerType = script.trigger.type;
+            return `
+                <div class="script-item">
+                    <div class="play-wrap scriptButton" data-sid="${script.id}">
+                        <svg class="play" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM7 6l8 4-8 4V6z"/>
+                        </svg>
+                        <div class="title">${script.title}</div>
+                    </div>
+                    <span class="mode ${triggerType}" title="Triggers ${triggerType ? "Manually" : "Automatically"}">
+                        ${triggerType}
+                    </span>
+                    <svg class="edit" data-sid="${script.id}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <path d="M12.3 3.7l4 4L4 20H0v-4L12.3 3.7zm1.4-1.4L16 0l4 4-2.3 2.3-4-4z"/>
+                    </svg>
+                </div>
+            `;
+        }
+
+        events() {
+            const scriptManager = new ScriptManager();
+            document.querySelector("#popupRoot").addEventListener("click", event => {
+                const target = event.target;
+                
+                if (target.matches(CONFIG.selectors.scriptButton)) {
+                    scriptManager.handleScriptRun(this.scriptArray, target.dataset.sid, this.tabId);
+                } else if (target.matches(CONFIG.selectors.editButton)) {
+                    CONFIG.browserClient.runtime.openOptionsPage();
+                } else if (target.matches(CONFIG.selectors.addNewScriptButton)) {
+                    CONFIG.browserClient.runtime.openOptionsPage();
+                } else if (target.matches(CONFIG.selectors.viewall)) {
+                    CONFIG.browserClient.runtime.openOptionsPage();
+                } else if (target.matches(CONFIG.selectors.downloadScript)) {
+                    CONFIG.browserClient.runtime.openOptionsPage();
+                }
+            });
+        }
+
+        init() {
+            this.renderScriptList();
+            this.events();
+        }
+    }
+
+    // =============================================
+    // Initialize popup when DOM is loaded
+    // =============================================
+    window.addEventListener("DOMContentLoaded", () => {
+        const popup = new PopupUI();
+        CONFIG.browserClient.runtime.sendMessage(
+            { action: "getScriptListFromStorage" },
+            scripts => {
+                popup.setScriptArray(scripts);
+                CONFIG.browserClient.tabs.query(
+                    { active: true, currentWindow: true },
+                    tabs => {
+                        popup.setTabConfig(tabs[0]);
+                        popup.init();
+                    }
+                );
+            }
+        );
+    });
+})();

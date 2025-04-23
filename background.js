@@ -1,2 +1,220 @@
 /*! For license information please see background.js.LICENSE.txt */
-(()=>{"use strict";function t(t){return-1!==t.indexOf("chrome://")}var e="https://scripty.abhisheksatre.com";const r={version:"1.0.1",browserClient:chrome,selectors:{scriptButton:".scriptButton",editButton:".edit",addNewScriptButton:".add-new-script",viewall:"#viewall",downloadScript:".down-script"},scriptdb:"scriptdb",menuTitle:"Scripty",urls:{home:"".concat(e),edit:"".concat(e,"/#/edit"),create:"".concat(e,"/#/create"),welcome:"".concat(e,"/#/welcome"),store:"".concat(e,"/#/store"),devMode:"".concat(e,"/#/dev-mode")},appDomains:["localhost:8080","scripty.abhisheksatre.com"],scriptStorageKey:"script_",triggerType:{automatic:"a",manual:"m"},triggerValue:{pageload:"pageload",beforeload:"beforeload"}},n="createScript",i="updateScript",o="deleteScript",a="getScriptListFromStorage",c="pingContentScript",u="devModeStatus",s="openTab",l="getVersion";function f(t){return f="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},f(t)}function p(t,e){for(var r=0;r<e.length;r++){var n=e[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(t,h(n.key),n)}}function h(t){var e=function(t,e){if("object"!=f(t)||!t)return t;var r=t[Symbol.toPrimitive];if(void 0!==r){var n=r.call(t,e||"default");if("object"!=f(n))return n;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===e?String:Number)(t)}(t,"string");return"symbol"==f(e)?e:e+""}var y=function(){return t=function t(){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,t),this.scriptList=[]},(e=[{key:"load",value:function(t){var e=this;r.browserClient.storage.local.get(null,(function(n){var i=[];for(var o in n)n.hasOwnProperty(o)&&0===o.indexOf(r.scriptStorageKey)&&i.push(n[o]);e.scriptList=i,"function"==typeof t&&t(i)}))}},{key:"get",value:function(){return this.scriptList}},{key:"set",value:function(t,e){var r={};r[t.id]=t,this._saveInStorage(r,e)}},{key:"update",value:function(t,e,r){var n={};e.id=t,n[t]=e,this._saveInStorage(n,r)}},{key:"delete",value:function(t,e){var n=this;r.browserClient.storage.local.remove(t,(function(){n.load((function(t){r.browserClient.runtime.lastError?e({success:!1}):e({success:!0,scripts:t})}))}))}},{key:"_saveInStorage",value:function(t,e){var n=this;r.browserClient.storage.local.set(t,(function(){n.load((function(t){r.browserClient.runtime.lastError?e({success:!1}):e({success:!0,scripts:t})}))}))}}])&&p(t.prototype,e),n&&p(t,n),Object.defineProperty(t,"prototype",{writable:!1}),t;var t,e,n}();function d(t){return d="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},d(t)}function v(t){return function(t){if(Array.isArray(t))return t}(t)||function(t){if("undefined"!=typeof Symbol&&null!=t[Symbol.iterator]||null!=t["@@iterator"])return Array.from(t)}(t)||function(t,e){if(t){if("string"==typeof t)return g(t,e);var r={}.toString.call(t).slice(8,-1);return"Object"===r&&t.constructor&&(r=t.constructor.name),"Map"===r||"Set"===r?Array.from(t):"Arguments"===r||/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(r)?g(t,e):void 0}}(t)||function(){throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}()}function g(t,e){(null==e||e>t.length)&&(e=t.length);for(var r=0,n=Array(e);r<e;r++)n[r]=t[r];return n}function m(t,e){for(var r=0;r<e.length;r++){var n=e[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(t,b(n.key),n)}}function b(t){var e=function(t,e){if("object"!=d(t)||!t)return t;var r=t[Symbol.toPrimitive];if(void 0!==r){var n=r.call(t,e||"default");if("object"!=d(n))return n;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===e?String:Number)(t)}(t,"string");return"symbol"==d(e)?e:e+""}var w=function(){function t(e,r,n){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,t),this.identifierType=e,this.matchType=r,this.identifier=n}return e=t,n=[{key:"matchPattern",value:function(t,e){var r=new URL(t),n=v(e.split("://")),i=n[0],o=v(n.slice(1).join("://").split("/")),a=o[0],c=i,u="/"+o.slice(1).join("/"),s=r.protocol.slice(0,-1);return!("*"!==c&&c!==s||!new RegExp("^"+a.replace(/\./g,"\\.").replace(/\*/g,".*")+"$").test(r.hostname)||!new RegExp("^"+u.replace(/\*/g,".*")+"$").test(r.pathname))}},{key:"isValidPattern",value:function(t){return/^(\*|https?|http|file):\/\/(\*|\*\.[^/*]+|[^/*]+)\/(.*)?$/.test(t)}}],(r=[{key:"generate",value:function(){var t=this.getMatch();return Array.isArray(t)?t:[t]}},{key:"getMatch",value:function(){switch(this.identifierType){case"pattern":case"url":return this.getMatchPattern();case"host":return this.generateHostPattern();case"path":return this.generatePathPattern();default:throw new Error('Invalid identifier type. Must be "host", "path", or "pattern".')}}},{key:"generateHostPattern",value:function(){if("equals"===this.matchType)return"*://".concat(this.identifier,"/*");throw new Error("Invalid match type. Only equals is supported for host.")}},{key:"generatePathPattern",value:function(){if("equals"===this.matchType){var t=this.identifier.startsWith("/")?this.identifier:"/".concat(this.identifier);return"*://*".concat(t)}if("contains"===this.matchType)return"*://*/*".concat(this.identifier,"*");throw new Error('Invalid match type. Must be "equals" or "contains".')}},{key:"generateUrlPattern",value:function(){if("equals"===this.matchType)return"*://*/".concat(this.identifier);if("contains"===this.matchType)return"*://*/*".concat(this.identifier,"*");throw new Error('Invalid match type. Must be "equals" or "contains".')}},{key:"getMatchPattern",value:function(){return this.identifier.split(",").map((function(t){return t.trim()})).filter((function(e){return t.isValidPattern(e)}))}}])&&m(e.prototype,r),n&&m(e,n),Object.defineProperty(e,"prototype",{writable:!1}),e;var e,r,n}();function x(t){return x="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},x(t)}function S(){S=function(){return e};var t,e={},r=Object.prototype,n=r.hasOwnProperty,i=Object.defineProperty||function(t,e,r){t[e]=r.value},o="function"==typeof Symbol?Symbol:{},a=o.iterator||"@@iterator",c=o.asyncIterator||"@@asyncIterator",u=o.toStringTag||"@@toStringTag";function s(t,e,r){return Object.defineProperty(t,e,{value:r,enumerable:!0,configurable:!0,writable:!0}),t[e]}try{s({},"")}catch(t){s=function(t,e,r){return t[e]=r}}function l(t,e,r,n){var o=e&&e.prototype instanceof g?e:g,a=Object.create(o.prototype),c=new I(n||[]);return i(a,"_invoke",{value:j(t,r,c)}),a}function f(t,e,r){try{return{type:"normal",arg:t.call(e,r)}}catch(t){return{type:"throw",arg:t}}}e.wrap=l;var p="suspendedStart",h="suspendedYield",y="executing",d="completed",v={};function g(){}function m(){}function b(){}var w={};s(w,a,(function(){return this}));var L=Object.getPrototypeOf,E=L&&L(L(A([])));E&&E!==r&&n.call(E,a)&&(w=E);var k=b.prototype=g.prototype=Object.create(w);function C(t){["next","throw","return"].forEach((function(e){s(t,e,(function(t){return this._invoke(e,t)}))}))}function P(t,e){function r(i,o,a,c){var u=f(t[i],t,o);if("throw"!==u.type){var s=u.arg,l=s.value;return l&&"object"==x(l)&&n.call(l,"__await")?e.resolve(l.__await).then((function(t){r("next",t,a,c)}),(function(t){r("throw",t,a,c)})):e.resolve(l).then((function(t){s.value=t,a(s)}),(function(t){return r("throw",t,a,c)}))}c(u.arg)}var o;i(this,"_invoke",{value:function(t,n){function i(){return new e((function(e,i){r(t,n,e,i)}))}return o=o?o.then(i,i):i()}})}function j(e,r,n){var i=p;return function(o,a){if(i===y)throw Error("Generator is already running");if(i===d){if("throw"===o)throw a;return{value:t,done:!0}}for(n.method=o,n.arg=a;;){var c=n.delegate;if(c){var u=O(c,n);if(u){if(u===v)continue;return u}}if("next"===n.method)n.sent=n._sent=n.arg;else if("throw"===n.method){if(i===p)throw i=d,n.arg;n.dispatchException(n.arg)}else"return"===n.method&&n.abrupt("return",n.arg);i=y;var s=f(e,r,n);if("normal"===s.type){if(i=n.done?d:h,s.arg===v)continue;return{value:s.arg,done:n.done}}"throw"===s.type&&(i=d,n.method="throw",n.arg=s.arg)}}}function O(e,r){var n=r.method,i=e.iterator[n];if(i===t)return r.delegate=null,"throw"===n&&e.iterator.return&&(r.method="return",r.arg=t,O(e,r),"throw"===r.method)||"return"!==n&&(r.method="throw",r.arg=new TypeError("The iterator does not provide a '"+n+"' method")),v;var o=f(i,e.iterator,r.arg);if("throw"===o.type)return r.method="throw",r.arg=o.arg,r.delegate=null,v;var a=o.arg;return a?a.done?(r[e.resultName]=a.value,r.next=e.nextLoc,"return"!==r.method&&(r.method="next",r.arg=t),r.delegate=null,v):a:(r.method="throw",r.arg=new TypeError("iterator result is not an object"),r.delegate=null,v)}function _(t){var e={tryLoc:t[0]};1 in t&&(e.catchLoc=t[1]),2 in t&&(e.finallyLoc=t[2],e.afterLoc=t[3]),this.tryEntries.push(e)}function T(t){var e=t.completion||{};e.type="normal",delete e.arg,t.completion=e}function I(t){this.tryEntries=[{tryLoc:"root"}],t.forEach(_,this),this.reset(!0)}function A(e){if(e||""===e){var r=e[a];if(r)return r.call(e);if("function"==typeof e.next)return e;if(!isNaN(e.length)){var i=-1,o=function r(){for(;++i<e.length;)if(n.call(e,i))return r.value=e[i],r.done=!1,r;return r.value=t,r.done=!0,r};return o.next=o}}throw new TypeError(x(e)+" is not iterable")}return m.prototype=b,i(k,"constructor",{value:b,configurable:!0}),i(b,"constructor",{value:m,configurable:!0}),m.displayName=s(b,u,"GeneratorFunction"),e.isGeneratorFunction=function(t){var e="function"==typeof t&&t.constructor;return!!e&&(e===m||"GeneratorFunction"===(e.displayName||e.name))},e.mark=function(t){return Object.setPrototypeOf?Object.setPrototypeOf(t,b):(t.__proto__=b,s(t,u,"GeneratorFunction")),t.prototype=Object.create(k),t},e.awrap=function(t){return{__await:t}},C(P.prototype),s(P.prototype,c,(function(){return this})),e.AsyncIterator=P,e.async=function(t,r,n,i,o){void 0===o&&(o=Promise);var a=new P(l(t,r,n,i),o);return e.isGeneratorFunction(r)?a:a.next().then((function(t){return t.done?t.value:a.next()}))},C(k),s(k,u,"Generator"),s(k,a,(function(){return this})),s(k,"toString",(function(){return"[object Generator]"})),e.keys=function(t){var e=Object(t),r=[];for(var n in e)r.push(n);return r.reverse(),function t(){for(;r.length;){var n=r.pop();if(n in e)return t.value=n,t.done=!1,t}return t.done=!0,t}},e.values=A,I.prototype={constructor:I,reset:function(e){if(this.prev=0,this.next=0,this.sent=this._sent=t,this.done=!1,this.delegate=null,this.method="next",this.arg=t,this.tryEntries.forEach(T),!e)for(var r in this)"t"===r.charAt(0)&&n.call(this,r)&&!isNaN(+r.slice(1))&&(this[r]=t)},stop:function(){this.done=!0;var t=this.tryEntries[0].completion;if("throw"===t.type)throw t.arg;return this.rval},dispatchException:function(e){if(this.done)throw e;var r=this;function i(n,i){return c.type="throw",c.arg=e,r.next=n,i&&(r.method="next",r.arg=t),!!i}for(var o=this.tryEntries.length-1;o>=0;--o){var a=this.tryEntries[o],c=a.completion;if("root"===a.tryLoc)return i("end");if(a.tryLoc<=this.prev){var u=n.call(a,"catchLoc"),s=n.call(a,"finallyLoc");if(u&&s){if(this.prev<a.catchLoc)return i(a.catchLoc,!0);if(this.prev<a.finallyLoc)return i(a.finallyLoc)}else if(u){if(this.prev<a.catchLoc)return i(a.catchLoc,!0)}else{if(!s)throw Error("try statement without catch or finally");if(this.prev<a.finallyLoc)return i(a.finallyLoc)}}}},abrupt:function(t,e){for(var r=this.tryEntries.length-1;r>=0;--r){var i=this.tryEntries[r];if(i.tryLoc<=this.prev&&n.call(i,"finallyLoc")&&this.prev<i.finallyLoc){var o=i;break}}o&&("break"===t||"continue"===t)&&o.tryLoc<=e&&e<=o.finallyLoc&&(o=null);var a=o?o.completion:{};return a.type=t,a.arg=e,o?(this.method="next",this.next=o.finallyLoc,v):this.complete(a)},complete:function(t,e){if("throw"===t.type)throw t.arg;return"break"===t.type||"continue"===t.type?this.next=t.arg:"return"===t.type?(this.rval=this.arg=t.arg,this.method="return",this.next="end"):"normal"===t.type&&e&&(this.next=e),v},finish:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var r=this.tryEntries[e];if(r.finallyLoc===t)return this.complete(r.completion,r.afterLoc),T(r),v}},catch:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var r=this.tryEntries[e];if(r.tryLoc===t){var n=r.completion;if("throw"===n.type){var i=n.arg;T(r)}return i}}throw Error("illegal catch attempt")},delegateYield:function(e,r,n){return this.delegate={iterator:A(e),resultName:r,nextLoc:n},"next"===this.method&&(this.arg=t),v}},e}function L(t,e,r,n,i,o,a){try{var c=t[o](a),u=c.value}catch(t){return void r(t)}c.done?e(u):Promise.resolve(u).then(n,i)}function E(t){return function(){var e=this,r=arguments;return new Promise((function(n,i){var o=t.apply(e,r);function a(t){L(o,n,i,a,c,"next",t)}function c(t){L(o,n,i,a,c,"throw",t)}a(void 0)}))}}function k(t,e){for(var r=0;r<e.length;r++){var n=e[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(t,C(n.key),n)}}function C(t){var e=function(t,e){if("object"!=x(t)||!t)return t;var r=t[Symbol.toPrimitive];if(void 0!==r){var n=r.call(t,e||"default");if("object"!=x(n))return n;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===e?String:Number)(t)}(t,"string");return"symbol"==x(e)?e:e+""}var P=function(){function e(){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,e)}return n=e,i=[{key:"createScript",value:(l=E(S().mark((function t(e){return S().wrap((function(t){for(;;)switch(t.prev=t.next){case 0:return t.next=2,this.saveScript(e);case 2:return t.abrupt("return",t.sent);case 3:case"end":return t.stop()}}),t,this)}))),function(t){return l.apply(this,arguments)})},{key:"updateScript",value:(s=E(S().mark((function t(e){return S().wrap((function(t){for(;;)switch(t.prev=t.next){case 0:return t.next=2,this.saveScript(e);case 2:return t.abrupt("return",t.sent);case 3:case"end":return t.stop()}}),t,this)}))),function(t){return s.apply(this,arguments)})},{key:"deleteScript",value:(u=E(S().mark((function t(e){return S().wrap((function(t){for(;;)switch(t.prev=t.next){case 0:return t.next=2,this.isScriptRegistered(e);case 2:if(t.t0=t.sent,!1!==t.t0){t.next=5;break}return t.abrupt("return",!1);case 5:return t.prev=5,t.next=8,r.browserClient.userScripts.unregister({ids:[e]});case 8:return t.abrupt("return",!0);case 11:t.prev=11,t.t1=t.catch(5);case 13:return t.abrupt("return",!1);case 14:case"end":return t.stop()}}),t,this,[[5,11]])}))),function(t){return u.apply(this,arguments)})},{key:"isScriptRegistered",value:(c=E(S().mark((function t(e){var n;return S().wrap((function(t){for(;;)switch(t.prev=t.next){case 0:return t.prev=0,t.next=3,r.browserClient.userScripts.getScripts({ids:[e]});case 3:return n=t.sent,t.abrupt("return",0!==n.length);case 7:t.prev=7,t.t0=t.catch(0);case 9:return t.abrupt("return",!1);case 10:case"end":return t.stop()}}),t,null,[[0,7]])}))),function(t){return c.apply(this,arguments)})},{key:"saveScript",value:(a=E(S().mark((function t(e){var n,i,o,a,c,u,s,l,f,p,h;return S().wrap((function(t){for(;;)switch(t.prev=t.next){case 0:return n=e.id,i=e.filter,o=e.trigger,a=e.disable,t.next=3,this.isScriptRegistered(n);case 3:if(c=t.sent,!a){t.next=8;break}return t.next=7,this.deleteScript(n);case 7:return t.abrupt("return",e);case 8:if(c||e.vrs){t.next=11;break}return e.disable=!0,t.abrupt("return",e);case 11:if(t.prev=11,u=new w(i.identifier,i.condition,i.value).generate(),e.filter.matches=u,s="MAIN",l="document_end",f=this.handleScriptCode(e.script.value),p='\n                window._scripty = window._scripty || {}; \n                window._scripty["'.concat(n,'"] = () => {\n                    try {   \n                        ').concat(f,'\n                    } catch (e) {\n                        console.error("Scripty: Error executing script: ').concat(e.title,'", e);\n                    }\n                };\n            ').replace(/\s+/g," ").trim(),o.type===r.triggerType.manual?(s="MAIN",l="document_end"):o.type===r.triggerType.automatic&&(p+='window._scripty["'.concat(n,'"]()'),l=o.value===r.triggerValue.beforeload?"document_start":"document_end"),h={id:n,matches:u,world:s,runAt:l,js:[{code:p}]},!c){t.next=25;break}return t.next=23,r.browserClient.userScripts.update([h]);case 23:t.next=27;break;case 25:return t.next=27,r.browserClient.userScripts.register([h]);case 27:return e.vrs=2,t.abrupt("return",e);case 31:t.prev=31,t.t0=t.catch(11),console.error("Error saving script",t.t0);case 34:return t.abrupt("return",null);case 35:case"end":return t.stop()}}),t,this,[[11,31]])}))),function(t){return a.apply(this,arguments)})},{key:"handleScriptCode",value:function(t){return t=(t=(t=(t=t.replace(/<!--[\s\S]*?-->/g,"")).replace(/(^|\s)\/\/[^\n]*/gm,"$1")).replace(/\/\*[\s\S]*?\*\//g,"")).replace(/^\s*[\r\n]/gm,"")}}],o=[{key:"getScriptsForCurrentUrl",value:function(e,n){var i=arguments.length>2&&void 0!==arguments[2]?arguments[2]:{type:r.triggerType.manual};if(!1===Array.isArray(n))return[];if(0===e.length)return[];var o=new URL(e);return t(o.origin)?[]:n.filter((function(t){if(!0===t.disable)return!1;if(t.trigger.type!==i.type&&"all"!==i.type)return!1;if(i.type===r.triggerType.automatic&&i.value!==t.trigger.value)return!1;if("all"===t.filter.value||""===t.filter.value)return!0;var n;if(["pattern","path","host"].includes(t.filter.identifier))return(null!==(n=t.filter.matches)&&void 0!==n?n:[]).some((function(t){return w.matchPattern(e,t)}));var a=o.href;if("url"===t.filter.identifier?a=o.href:"path"===t.filter.identifier?a=o.pathname:"host"===t.filter.identifier&&(a=o.hostname),"contains"===t.filter.condition)return-1!==a.indexOf(t.filter.value);if("equals"===t.filter.condition)return a==t.filter.value;if("regex"===t.filter.condition){var c=t.filter.value.replace(/.*\/([gimy]*)$/,"$1"),u=t.filter.value.replace(new RegExp("^/(.*?)/"+c+"$"),"$1");return new RegExp(u,c).test(a)}return!1}))}},{key:"getScriptById",value:function(t,e){return t.find((function(t){return t.id==e}))}},{key:"handleScriptRun",value:function(t,n,i){var o=arguments.length>3&&void 0!==arguments[3]&&arguments[3];!1===o&&(o=e.getScriptById(t,n)),o&&"object"===x(o)&&r.browserClient.scripting.executeScript({target:{tabId:i},func:function(t){var e;"function"==typeof(null===(e=window._scripty)||void 0===e?void 0:e[t])?window._scripty[t]():console.error('Scripty: Script "'.concat(t,'" could not be executed.\n\nThis could be because:\n1. There might be syntax errors in the script\n2. The script might have been disabled or deleted\n3. Try reloading the page\n4. Semicolons might be missing in the script\n\nPlease check the script and try again.'))},world:"MAIN",args:[n]},(function(t){var e=r.browserClient.runtime.lastError;e&&JSON.stringify(e)}))}}],i&&k(n.prototype,i),o&&k(n,o),Object.defineProperty(n,"prototype",{writable:!1}),n;var n,i,o,a,c,u,s,l}();function j(t){return j="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},j(t)}function O(){O=function(){return e};var t,e={},r=Object.prototype,n=r.hasOwnProperty,i=Object.defineProperty||function(t,e,r){t[e]=r.value},o="function"==typeof Symbol?Symbol:{},a=o.iterator||"@@iterator",c=o.asyncIterator||"@@asyncIterator",u=o.toStringTag||"@@toStringTag";function s(t,e,r){return Object.defineProperty(t,e,{value:r,enumerable:!0,configurable:!0,writable:!0}),t[e]}try{s({},"")}catch(t){s=function(t,e,r){return t[e]=r}}function l(t,e,r,n){var o=e&&e.prototype instanceof g?e:g,a=Object.create(o.prototype),c=new I(n||[]);return i(a,"_invoke",{value:C(t,r,c)}),a}function f(t,e,r){try{return{type:"normal",arg:t.call(e,r)}}catch(t){return{type:"throw",arg:t}}}e.wrap=l;var p="suspendedStart",h="suspendedYield",y="executing",d="completed",v={};function g(){}function m(){}function b(){}var w={};s(w,a,(function(){return this}));var x=Object.getPrototypeOf,S=x&&x(x(A([])));S&&S!==r&&n.call(S,a)&&(w=S);var L=b.prototype=g.prototype=Object.create(w);function E(t){["next","throw","return"].forEach((function(e){s(t,e,(function(t){return this._invoke(e,t)}))}))}function k(t,e){function r(i,o,a,c){var u=f(t[i],t,o);if("throw"!==u.type){var s=u.arg,l=s.value;return l&&"object"==j(l)&&n.call(l,"__await")?e.resolve(l.__await).then((function(t){r("next",t,a,c)}),(function(t){r("throw",t,a,c)})):e.resolve(l).then((function(t){s.value=t,a(s)}),(function(t){return r("throw",t,a,c)}))}c(u.arg)}var o;i(this,"_invoke",{value:function(t,n){function i(){return new e((function(e,i){r(t,n,e,i)}))}return o=o?o.then(i,i):i()}})}function C(e,r,n){var i=p;return function(o,a){if(i===y)throw Error("Generator is already running");if(i===d){if("throw"===o)throw a;return{value:t,done:!0}}for(n.method=o,n.arg=a;;){var c=n.delegate;if(c){var u=P(c,n);if(u){if(u===v)continue;return u}}if("next"===n.method)n.sent=n._sent=n.arg;else if("throw"===n.method){if(i===p)throw i=d,n.arg;n.dispatchException(n.arg)}else"return"===n.method&&n.abrupt("return",n.arg);i=y;var s=f(e,r,n);if("normal"===s.type){if(i=n.done?d:h,s.arg===v)continue;return{value:s.arg,done:n.done}}"throw"===s.type&&(i=d,n.method="throw",n.arg=s.arg)}}}function P(e,r){var n=r.method,i=e.iterator[n];if(i===t)return r.delegate=null,"throw"===n&&e.iterator.return&&(r.method="return",r.arg=t,P(e,r),"throw"===r.method)||"return"!==n&&(r.method="throw",r.arg=new TypeError("The iterator does not provide a '"+n+"' method")),v;var o=f(i,e.iterator,r.arg);if("throw"===o.type)return r.method="throw",r.arg=o.arg,r.delegate=null,v;var a=o.arg;return a?a.done?(r[e.resultName]=a.value,r.next=e.nextLoc,"return"!==r.method&&(r.method="next",r.arg=t),r.delegate=null,v):a:(r.method="throw",r.arg=new TypeError("iterator result is not an object"),r.delegate=null,v)}function _(t){var e={tryLoc:t[0]};1 in t&&(e.catchLoc=t[1]),2 in t&&(e.finallyLoc=t[2],e.afterLoc=t[3]),this.tryEntries.push(e)}function T(t){var e=t.completion||{};e.type="normal",delete e.arg,t.completion=e}function I(t){this.tryEntries=[{tryLoc:"root"}],t.forEach(_,this),this.reset(!0)}function A(e){if(e||""===e){var r=e[a];if(r)return r.call(e);if("function"==typeof e.next)return e;if(!isNaN(e.length)){var i=-1,o=function r(){for(;++i<e.length;)if(n.call(e,i))return r.value=e[i],r.done=!1,r;return r.value=t,r.done=!0,r};return o.next=o}}throw new TypeError(j(e)+" is not iterable")}return m.prototype=b,i(L,"constructor",{value:b,configurable:!0}),i(b,"constructor",{value:m,configurable:!0}),m.displayName=s(b,u,"GeneratorFunction"),e.isGeneratorFunction=function(t){var e="function"==typeof t&&t.constructor;return!!e&&(e===m||"GeneratorFunction"===(e.displayName||e.name))},e.mark=function(t){return Object.setPrototypeOf?Object.setPrototypeOf(t,b):(t.__proto__=b,s(t,u,"GeneratorFunction")),t.prototype=Object.create(L),t},e.awrap=function(t){return{__await:t}},E(k.prototype),s(k.prototype,c,(function(){return this})),e.AsyncIterator=k,e.async=function(t,r,n,i,o){void 0===o&&(o=Promise);var a=new k(l(t,r,n,i),o);return e.isGeneratorFunction(r)?a:a.next().then((function(t){return t.done?t.value:a.next()}))},E(L),s(L,u,"Generator"),s(L,a,(function(){return this})),s(L,"toString",(function(){return"[object Generator]"})),e.keys=function(t){var e=Object(t),r=[];for(var n in e)r.push(n);return r.reverse(),function t(){for(;r.length;){var n=r.pop();if(n in e)return t.value=n,t.done=!1,t}return t.done=!0,t}},e.values=A,I.prototype={constructor:I,reset:function(e){if(this.prev=0,this.next=0,this.sent=this._sent=t,this.done=!1,this.delegate=null,this.method="next",this.arg=t,this.tryEntries.forEach(T),!e)for(var r in this)"t"===r.charAt(0)&&n.call(this,r)&&!isNaN(+r.slice(1))&&(this[r]=t)},stop:function(){this.done=!0;var t=this.tryEntries[0].completion;if("throw"===t.type)throw t.arg;return this.rval},dispatchException:function(e){if(this.done)throw e;var r=this;function i(n,i){return c.type="throw",c.arg=e,r.next=n,i&&(r.method="next",r.arg=t),!!i}for(var o=this.tryEntries.length-1;o>=0;--o){var a=this.tryEntries[o],c=a.completion;if("root"===a.tryLoc)return i("end");if(a.tryLoc<=this.prev){var u=n.call(a,"catchLoc"),s=n.call(a,"finallyLoc");if(u&&s){if(this.prev<a.catchLoc)return i(a.catchLoc,!0);if(this.prev<a.finallyLoc)return i(a.finallyLoc)}else if(u){if(this.prev<a.catchLoc)return i(a.catchLoc,!0)}else{if(!s)throw Error("try statement without catch or finally");if(this.prev<a.finallyLoc)return i(a.finallyLoc)}}}},abrupt:function(t,e){for(var r=this.tryEntries.length-1;r>=0;--r){var i=this.tryEntries[r];if(i.tryLoc<=this.prev&&n.call(i,"finallyLoc")&&this.prev<i.finallyLoc){var o=i;break}}o&&("break"===t||"continue"===t)&&o.tryLoc<=e&&e<=o.finallyLoc&&(o=null);var a=o?o.completion:{};return a.type=t,a.arg=e,o?(this.method="next",this.next=o.finallyLoc,v):this.complete(a)},complete:function(t,e){if("throw"===t.type)throw t.arg;return"break"===t.type||"continue"===t.type?this.next=t.arg:"return"===t.type?(this.rval=this.arg=t.arg,this.method="return",this.next="end"):"normal"===t.type&&e&&(this.next=e),v},finish:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var r=this.tryEntries[e];if(r.finallyLoc===t)return this.complete(r.completion,r.afterLoc),T(r),v}},catch:function(t){for(var e=this.tryEntries.length-1;e>=0;--e){var r=this.tryEntries[e];if(r.tryLoc===t){var n=r.completion;if("throw"===n.type){var i=n.arg;T(r)}return i}}throw Error("illegal catch attempt")},delegateYield:function(e,r,n){return this.delegate={iterator:A(e),resultName:r,nextLoc:n},"next"===this.method&&(this.arg=t),v}},e}function _(t,e,r,n,i,o,a){try{var c=t[o](a),u=c.value}catch(t){return void r(t)}c.done?e(u):Promise.resolve(u).then(n,i)}function T(t){return function(){var e=this,r=arguments;return new Promise((function(n,i){var o=t.apply(e,r);function a(t){_(o,n,i,a,c,"next",t)}function c(t){_(o,n,i,a,c,"throw",t)}a(void 0)}))}}function I(t,e){for(var r=0;r<e.length;r++){var n=e[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(t,A(n.key),n)}}function A(t){var e=function(t,e){if("object"!=j(t)||!t)return t;var r=t[Symbol.toPrimitive];if(void 0!==r){var n=r.call(t,e||"default");if("object"!=j(n))return n;throw new TypeError("@@toPrimitive must return a primitive value.")}return("string"===e?String:Number)(t)}(t,"string");return"symbol"==j(e)?e:e+""}new(function(){return e=function t(){!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,t),this.storageApi=new y,this.storageApi.load(this.onStorageLoaded),this.scripty=new P,this.initBrowserHooks()},(f=[{key:"onStorageLoaded",value:function(){}},{key:"initBrowserHooks",value:function(){var t=this;r.browserClient.action.onClicked.addListener((function(t){r.browserClient.action.setPopup({tabId:t.id,popup:"popup.html"})})),r.browserClient.runtime.onMessage.addListener((function(e,c,f){if(e.action===a)f(t.storageApi.get());else{if(e.action===n)return e.id,e.data,T(O().mark((function r(){var n;return O().wrap((function(r){for(;;)switch(r.prev=r.next){case 0:return r.next=2,t.scripty.createScript(e.data);case 2:if(n=r.sent){r.next=6;break}return f({success:!1}),r.abrupt("return",!1);case 6:t.storageApi.set(n,f);case 7:case"end":return r.stop()}}),r)})))(),!0;if(e.action===i)return e.id,e.data,T(O().mark((function r(){var n;return O().wrap((function(r){for(;;)switch(r.prev=r.next){case 0:return r.next=2,t.scripty.updateScript(e.data);case 2:if(n=r.sent){r.next=6;break}return f({success:!1}),r.abrupt("return",!1);case 6:t.storageApi.update(n.id,n,f);case 7:case"end":return r.stop()}}),r)})))(),!0;if(e.action===o)return e.id,t.scripty.deleteScript(e.id),t.storageApi.delete(e.id,f),!0;if(e.action===u)try{r.browserClient.userScripts,f(!0)}catch(t){f(!1)}else e.action===s?r.browserClient.tabs.create({url:e.tabUrl}):e.action===l&&f(r.version)}return!1})),r.browserClient.tabs.onActivated.addListener((function(e){r.browserClient.tabs.query({active:!0,currentWindow:!0},(function(e){var r=e[0].url;t.updateContextMenu(r)}))})),r.browserClient.tabs.onUpdated.addListener((function(e,r,n){n.active&&r.url&&"complete"==r.status&&(t.updateContextMenu(r.url),t.loadContentJs(e,r.url))})),r.browserClient.contextMenus.onClicked.addListener((function(e,i){if(e.menuItemId===n)r.browserClient.tabs.create({url:r.urls.create});else{var o=t.storageApi.get(),a=e.menuItemId.replace("menu-","");P.handleScriptRun(o,a,i.id)}})),r.browserClient.webNavigation.onDOMContentLoaded.addListener((function(e){-1===e.parentFrameId&&(t.updateContextMenu(e.url),t.loadContentJs(e.tabId,e.url),e.tabId,e.parentFrameId,e.url)})),r.browserClient.runtime.onInstalled.addListener((function(){try{r.browserClient.userScripts,r.browserClient.userScripts.configureWorld({messaging:!0});var e=t.storageApi.get();Array.isArray(e)&&e.forEach((function(e){t.scripty.createScript(e)}))}catch(t){return r.browserClient.tabs.create({url:r.urls.devMode}),!1}return chrome.tabs.create({url:"".concat(r.urls.welcome),active:!0}),!1}))}},{key:"updateContextMenu",value:function(e){var i=this.storageApi.get(),o=P.getScriptsForCurrentUrl(e,i);r.browserClient.contextMenus.removeAll((function(){t(e)||(r.browserClient.contextMenus.create({title:r.menuTitle,id:"parent-scripty",contexts:["all"]}),o.forEach((function(t){r.browserClient.contextMenus.create({id:"menu-"+t.id,title:t.title,parentId:"parent-scripty",contexts:["all"]})})),r.browserClient.contextMenus.create({id:"separator",type:"separator",contexts:["all"],parentId:"parent-scripty"}),r.browserClient.contextMenus.create({title:"Create Script",id:n,parentId:"parent-scripty",contexts:["all"]}))}))}},{key:"loadContentJs",value:function(t,e){var n=new URL(e);-1!==r.appDomains.indexOf(n.host)&&r.browserClient.tabs.sendMessage(t,{action:c},(function(e){r.browserClient.runtime.lastError,e||r.browserClient.scripting.executeScript({target:{tabId:t},files:["content.js"]},(function(){var t=r.browserClient.runtime.lastError;t&&JSON.stringify(t)}))}))}}])&&I(e.prototype,f),p&&I(e,p),Object.defineProperty(e,"prototype",{writable:!1}),e;var e,f,p}())})();
+(() => {
+    "use strict";
+
+    const CONFIG = {
+        version: "1.0.1",
+        browserClient: chrome,
+        scriptStorageKey: "script_",
+        triggerType: {
+            automatic: "a",
+            manual: "m"
+        },
+        triggerValue: {
+            pageload: "pageload",
+            beforeload: "beforeload"
+        }
+    };
+
+    // Import URLPatternMatcher from utils.js
+    importScripts('utils.js');
+
+    class ScriptManager {
+        constructor() {
+            this.scripts = [];
+            this.init();
+        }
+
+        async init() {
+            // Load existing scripts
+            await this.loadScripts();
+            
+            // Register message listeners
+            this.setupMessageListeners();
+            
+            // Set up tab update listener
+            this.setupTabListener();
+        }
+
+        async loadScripts() {
+            const result = await CONFIG.browserClient.storage.local.get(null);
+            this.scripts = Object.values(result).filter(item => 
+                item.id && item.id.startsWith(CONFIG.scriptStorageKey)
+            );
+            
+            // Register all scripts
+            for (const script of this.scripts) {
+                if (!script.disable) {
+                    await this.registerScript(script);
+                }
+            }
+        }
+
+        async registerScript(script) {
+            try {
+                const { id, filter, trigger, script: scriptContent } = script;
+                
+                // Generate match patterns
+                const matches = new URLPatternMatcher(
+                    filter.identifier,
+                    filter.condition,
+                    filter.value
+                ).generate();
+
+                // Store matches in the script object
+                script.filter.matches = matches;
+
+                // Prepare script code
+                const wrappedScript = `
+                    window._scripty = window._scripty || {}; 
+                    window._scripty["${id}"] = () => {
+                        try {   
+                            ${scriptContent.value}
+                        } catch (e) {
+                            console.error("Scripty: Error executing script: ${script.title}", e);
+                        }
+                    };
+                `.replace(/\s+/g, " ").trim();
+
+                // Configure script registration
+                const scriptConfig = {
+                    id,
+                    matches,
+                    world: "MAIN",
+                    runAt: trigger.type === CONFIG.triggerType.automatic && 
+                           trigger.value === CONFIG.triggerValue.beforeload ? 
+                           "document_start" : "document_end",
+                    js: [{ code: wrappedScript }]
+                };
+
+                // Register or update the script
+                try {
+                    await CONFIG.browserClient.userScripts.register([scriptConfig]);
+                } catch (error) {
+                    // If script exists, update it
+                    await CONFIG.browserClient.userScripts.update([scriptConfig]);
+                }
+
+                // If automatic trigger, add execution code
+                if (trigger.type === CONFIG.triggerType.automatic) {
+                    const executeScript = {
+                        target: { allFrames: true },
+                        func: scriptId => {
+                            if (typeof window._scripty?.[scriptId] === "function") {
+                                window._scripty[scriptId]();
+                            }
+                        },
+                        world: "MAIN",
+                        args: [id]
+                    };
+
+                    // Execute on matching tabs
+                    const tabs = await CONFIG.browserClient.tabs.query({});
+                    for (const tab of tabs) {
+                        if (matches.some(match => 
+                            new URLPatternMatcher().matchPattern(tab.url, match)
+                        )) {
+                            try {
+                                await CONFIG.browserClient.scripting.executeScript({
+                                    ...executeScript,
+                                    target: { tabId: tab.id }
+                                });
+                            } catch (error) {
+                                console.error(`Failed to execute script on tab ${tab.id}:`, error);
+                            }
+                        }
+                    }
+                }
+
+                return true;
+            } catch (error) {
+                console.error("Error registering script:", error);
+                return false;
+            }
+        }
+
+        setupMessageListeners() {
+            CONFIG.browserClient.runtime.onMessage.addListener((message, sender, sendResponse) => {
+                switch (message.action) {
+                    case "getScriptListFromStorage":
+                        sendResponse(this.scripts);
+                        break;
+                    
+                    case "createScript":
+                    case "updateScript":
+                        this.saveScript(message.data)
+                            .then(sendResponse)
+                            .catch(error => sendResponse({ success: false, error }));
+                        return true;
+                    
+                    case "deleteScript":
+                        this.deleteScript(message.id)
+                            .then(sendResponse)
+                            .catch(error => sendResponse({ success: false, error }));
+                        return true;
+                }
+            });
+        }
+
+        setupTabListener() {
+            CONFIG.browserClient.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+                if (changeInfo.status === "complete") {
+                    const matchingScripts = this.scripts.filter(script => 
+                        !script.disable && 
+                        script.trigger.type === CONFIG.triggerType.automatic &&
+                        script.filter.matches && // Add check for matches existence
+                        script.filter.matches.some(match => 
+                            new URLPatternMatcher().matchPattern(tab.url, match)
+                        )
+                    );
+
+                    for (const script of matchingScripts) {
+                        try {
+                            await CONFIG.browserClient.scripting.executeScript({
+                                target: { tabId },
+                                func: scriptId => {
+                                    if (typeof window._scripty?.[scriptId] === "function") {
+                                        window._scripty[scriptId]();
+                                    }
+                                },
+                                world: "MAIN",
+                                args: [script.id]
+                            });
+                        } catch (error) {
+                            console.error(`Failed to execute script ${script.id} on tab ${tabId}:`, error);
+                        }
+                    }
+                }
+            });
+        }
+
+        async saveScript(script) {
+            try {
+                const success = await this.registerScript(script);
+                if (success) {
+                    await CONFIG.browserClient.storage.local.set({ [script.id]: script });
+                    this.scripts = this.scripts.filter(s => s.id !== script.id);
+                    this.scripts.push(script);
+                    return { success: true, script };
+                }
+                return { success: false, error: "Failed to register script" };
+            } catch (error) {
+                return { success: false, error };
+            }
+        }
+
+        async deleteScript(scriptId) {
+            try {
+                await CONFIG.browserClient.userScripts.unregister({ ids: [scriptId] });
+                await CONFIG.browserClient.storage.local.remove(scriptId);
+                this.scripts = this.scripts.filter(script => script.id !== scriptId);
+                return { success: true };
+            } catch (error) {
+                return { success: false, error };
+            }
+        }
+    }
+
+    // Initialize the script manager
+    new ScriptManager();
+})();

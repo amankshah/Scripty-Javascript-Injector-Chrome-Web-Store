@@ -3,24 +3,26 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Popup</title>
+    <title>Scripty - JavaScript Injector</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="popup.css">
+    <script src="utils.js"></script>
     <script src="popup.js"></script>
 </head>
 <body>
     <div id="popupRoot">
-        <header>&lt;Scripty/&gt;
-            <span id="viewall">View All</span>
+        <header>
+            <span class="title">&lt;Scripty/&gt;</span>
+            <span id="viewall" class="view-all">View All</span>
         </header>
         
-        <div id="list"></div>
+        <div id="list" class="script-list"></div>
 
         <div class="no-script-fallback">
             <h3>No script available for this URL.</h3>
             <div class="cta-row">
                 <button class="add-new-script">
-                    <svg viewBox="0 0 24 24" class="w-6 inline-block mr-2" >
+                    <svg viewBox="0 0 24 24" class="w-6 inline-block mr-2">
                         <path fill="#FFFFFF" d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
                     </svg>
                     Add New Script
@@ -33,7 +35,6 @@
                 </button>
             </div>
         </div>
-
     </div>
 </body>
 </html>

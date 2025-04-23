@@ -1,1 +1,171 @@
-(()=>{"use strict";const t="createScript",e="updateScript",n="deleteScript",a="getScriptListFromStorage",i="pingContentScript",o="scriptsLoadedFromCS",s="contentScriptLoaded",d="scriptOperationDone",r="scriptOperationFailed",c="devModeStatus",u="openTab",p="getVersion";var l="https://scripty.abhisheksatre.com";const m={version:"1.0.1",browserClient:chrome,selectors:{scriptButton:".scriptButton",editButton:".edit",addNewScriptButton:".add-new-script",viewall:"#viewall",downloadScript:".down-script"},scriptdb:"scriptdb",menuTitle:"Scripty",urls:{home:"".concat(l),edit:"".concat(l,"/#/edit"),create:"".concat(l,"/#/create"),welcome:"".concat(l,"/#/welcome"),store:"".concat(l,"/#/store"),devMode:"".concat(l,"/#/dev-mode")},appDomains:["localhost:8080","scripty.abhisheksatre.com"],scriptStorageKey:"script_",triggerType:{automatic:"a",manual:"m"},triggerValue:{pageload:"pageload",beforeload:"beforeload"}};document.documentElement.setAttribute("scripty",!0),m.browserClient.runtime.onMessage.addListener((function(t,e,n){e.tab&&e.tab.id;if(t.action===i)n({alive:!0})})),window.addEventListener("message",(function(i){if(i.source==window&&i.data.type)try{i.data.type===a?m.browserClient.runtime.sendMessage({action:a},(function(t){document.dispatchEvent(new CustomEvent(o,{detail:{scripts:t}}))})):i.data.type===t?m.browserClient.runtime.sendMessage({action:t,data:i.data.data},(function(t){m.browserClient.runtime.lastError;t.success?(t.opTitle=i.data.title,document.dispatchEvent(new CustomEvent(d,{detail:t})),document.dispatchEvent(new CustomEvent(o,{detail:t}))):document.dispatchEvent(new CustomEvent(r,{detail:t}))})):i.data.type===e?m.browserClient.runtime.sendMessage({action:e,data:i.data.data,id:i.data.id},(function(t){m.browserClient.runtime.lastError;t.success?(t.opTitle=i.data.title,document.dispatchEvent(new CustomEvent(d,{detail:t})),document.dispatchEvent(new CustomEvent(o,{detail:t}))):document.dispatchEvent(new CustomEvent(r,{detail:t}))})):i.data.type===n?m.browserClient.runtime.sendMessage({action:n,id:i.data.id},(function(t){m.browserClient.runtime.lastError;document.dispatchEvent(new CustomEvent(o,{detail:t}))})):i.data.type===c?m.browserClient.runtime.sendMessage({action:c},(function(t){document.dispatchEvent(new CustomEvent(c,{detail:{enabled:t}}))})):i.data.type===u?m.browserClient.runtime.sendMessage({action:u,tabUrl:i.data.tabUrl}):i.data.type===p&&m.browserClient.runtime.sendMessage({action:p},(function(t){document.dispatchEvent(new CustomEvent(p,{detail:t}))}))}catch(t){}}),!1),document.dispatchEvent(new CustomEvent(s,{detail:""}))})();
+(() => {
+    "use strict";
+
+    // Message types for communication
+    const MESSAGE_TYPES = {
+        CREATE_SCRIPT: "createScript",
+        UPDATE_SCRIPT: "updateScript",
+        DELETE_SCRIPT: "deleteScript",
+        GET_SCRIPTS: "getScriptListFromStorage",
+        PING: "pingContentScript",
+        SCRIPTS_LOADED: "scriptsLoadedFromCS",
+        CONTENT_SCRIPT_LOADED: "contentScriptLoaded",
+        OPERATION_DONE: "scriptOperationDone",
+        OPERATION_FAILED: "scriptOperationFailed",
+        GET_VERSION: "getVersion"
+    };
+
+    // Configuration
+    const CONFIG = {
+        version: "1.0.1",
+        browserClient: chrome,
+        selectors: {
+            scriptButton: ".scriptButton",
+            editButton: ".edit",
+            addNewScriptButton: ".add-new-script",
+            viewall: "#viewall",
+            downloadScript: ".down-script"
+        },
+        scriptdb: "scriptdb",
+        menuTitle: "Scripty",
+        triggerType: {
+            automatic: "a",
+            manual: "m"
+        },
+        triggerValue: {
+            pageload: "pageload",
+            beforeload: "beforeload"
+        }
+    };
+
+    // Mark the page as having Scripty installed
+    document.documentElement.setAttribute("scripty", true);
+
+    // Listen for messages from the extension
+    CONFIG.browserClient.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (message.action === MESSAGE_TYPES.PING) {
+            sendResponse({ alive: true });
+        }
+    });
+
+    // Listen for messages from the page
+    window.addEventListener("message", (event) => {
+        if (event.source === window && event.data.type) {
+            try {
+                switch (event.data.type) {
+                    case MESSAGE_TYPES.GET_SCRIPTS:
+                        CONFIG.browserClient.runtime.sendMessage(
+                            { action: MESSAGE_TYPES.GET_SCRIPTS },
+                            (response) => {
+                                document.dispatchEvent(
+                                    new CustomEvent(MESSAGE_TYPES.SCRIPTS_LOADED, {
+                                        detail: { scripts: response }
+                                    })
+                                );
+                            }
+                        );
+                        break;
+
+                    case MESSAGE_TYPES.CREATE_SCRIPT:
+                        CONFIG.browserClient.runtime.sendMessage(
+                            {
+                                action: MESSAGE_TYPES.CREATE_SCRIPT,
+                                data: event.data.data
+                            },
+                            (response) => {
+                                if (response.success) {
+                                    response.opTitle = event.data.title;
+                                    document.dispatchEvent(
+                                        new CustomEvent(MESSAGE_TYPES.OPERATION_DONE, {
+                                            detail: response
+                                        })
+                                    );
+                                    document.dispatchEvent(
+                                        new CustomEvent(MESSAGE_TYPES.SCRIPTS_LOADED, {
+                                            detail: response
+                                        })
+                                    );
+                                } else {
+                                    document.dispatchEvent(
+                                        new CustomEvent(MESSAGE_TYPES.OPERATION_FAILED, {
+                                            detail: response
+                                        })
+                                    );
+                                }
+                            }
+                        );
+                        break;
+
+                    case MESSAGE_TYPES.UPDATE_SCRIPT:
+                        CONFIG.browserClient.runtime.sendMessage(
+                            {
+                                action: MESSAGE_TYPES.UPDATE_SCRIPT,
+                                data: event.data.data,
+                                id: event.data.id
+                            },
+                            (response) => {
+                                if (response.success) {
+                                    response.opTitle = event.data.title;
+                                    document.dispatchEvent(
+                                        new CustomEvent(MESSAGE_TYPES.OPERATION_DONE, {
+                                            detail: response
+                                        })
+                                    );
+                                    document.dispatchEvent(
+                                        new CustomEvent(MESSAGE_TYPES.SCRIPTS_LOADED, {
+                                            detail: response
+                                        })
+                                    );
+                                } else {
+                                    document.dispatchEvent(
+                                        new CustomEvent(MESSAGE_TYPES.OPERATION_FAILED, {
+                                            detail: response
+                                        })
+                                    );
+                                }
+                            }
+                        );
+                        break;
+
+                    case MESSAGE_TYPES.DELETE_SCRIPT:
+                        CONFIG.browserClient.runtime.sendMessage(
+                            {
+                                action: MESSAGE_TYPES.DELETE_SCRIPT,
+                                id: event.data.id
+                            },
+                            (response) => {
+                                document.dispatchEvent(
+                                    new CustomEvent(MESSAGE_TYPES.SCRIPTS_LOADED, {
+                                        detail: response
+                                    })
+                                );
+                            }
+                        );
+                        break;
+
+                    case MESSAGE_TYPES.GET_VERSION:
+                        CONFIG.browserClient.runtime.sendMessage(
+                            { action: MESSAGE_TYPES.GET_VERSION },
+                            (response) => {
+                                document.dispatchEvent(
+                                    new CustomEvent(MESSAGE_TYPES.GET_VERSION, {
+                                        detail: response
+                                    })
+                                );
+                            }
+                        );
+                        break;
+                }
+            } catch (error) {
+                console.error("Error handling message:", error);
+            }
+        }
+    }, false);
+
+    // Notify that content script is loaded
+    document.dispatchEvent(
+        new CustomEvent(MESSAGE_TYPES.CONTENT_SCRIPT_LOADED, {
+            detail: ""
+        })
+    );
+})();

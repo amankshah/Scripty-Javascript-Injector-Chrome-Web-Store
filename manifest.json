@@ -8,6 +8,7 @@
   "version": "1.0.1",
   "author": "Aman Shah",
   "action": {
+    "default_popup": "popup.html",
     "default_icon": {
       "16": "images/icon_16.png",
       "32": "images/icon_128.png"
@@ -31,11 +32,12 @@
     "http://*/*",
     "https://*/*"
   ],
+  "options_page": "options.html",
   "background": {
     "service_worker": "background.js"
   },
   "web_accessible_resources": [{
-    "resources": [],
+    "resources": ["utils.js"],
     "matches": ["<all_urls>"]
   }],
   "content_security_policy": {
