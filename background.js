@@ -26,23 +26,18 @@
         }
 
         async init() {
-            // Load existing scripts
             await this.loadScripts();
-            
-            // Register message listeners
             this.setupMessageListeners();
-            
-            // Set up tab update listener
             this.setupTabListener();
         }
 
         async loadScripts() {
             const result = await CONFIG.browserClient.storage.local.get(null);
-            this.scripts = Object.values(result).filter(item => 
-                item.id && item.id.startsWith(CONFIG.scriptStorageKey)
-            );
-            
-            // Register all scripts
+            this.scripts = Object.values(result).filter(item => item.id && item.id.startsWith('script_'));
+            await this.registerAllScripts();
+        }
+
+        async registerAllScripts() {
             for (const script of this.scripts) {
                 if (!script.disable) {
                     await this.registerScript(script);
@@ -52,81 +47,62 @@
 
         async registerScript(script) {
             try {
-                const { id, filter, trigger, script: scriptContent } = script;
-                
-                // Generate match patterns
                 const matches = new URLPatternMatcher(
-                    filter.identifier,
-                    filter.condition,
-                    filter.value
+                    script.filter.identifier,
+                    script.filter.condition,
+                    script.filter.value
                 ).generate();
 
-                // Store matches in the script object
                 script.filter.matches = matches;
 
-                // Prepare script code
+                let world = "MAIN";
+                let runAt = "document_end";
+                let scriptCode = this.handleScriptCode(script.script.value);
+
                 const wrappedScript = `
                     window._scripty = window._scripty || {}; 
-                    window._scripty["${id}"] = () => {
+                    window._scripty["${script.id}"] = () => {
                         try {   
-                            ${scriptContent.value}
+                            ${scriptCode}
                         } catch (e) {
                             console.error("Scripty: Error executing script: ${script.title}", e);
                         }
                     };
                 `.replace(/\s+/g, " ").trim();
 
-                // Configure script registration
+                if (script.trigger.type === CONFIG.triggerType.automatic) {
+                    wrappedScript += `window._scripty["${script.id}"]()`;
+                    runAt = script.trigger.value === CONFIG.triggerValue.beforeload ? "document_start" : "document_end";
+                }
+
                 const scriptConfig = {
-                    id,
+                    id: script.id,
                     matches,
-                    world: "MAIN",
-                    runAt: "document_end",
+                    world,
+                    runAt,
                     js: [{ code: wrappedScript }]
                 };
 
-                // Register or update the script
-                try {
-                    await CONFIG.browserClient.userScripts.register([scriptConfig]);
-                } catch (error) {
-                    // If script exists, update it
+                const isRegistered = await this.isScriptRegistered(script.id);
+                if (isRegistered) {
                     await CONFIG.browserClient.userScripts.update([scriptConfig]);
-                }
-
-                // If automatic trigger, add execution code
-                if (trigger.type === CONFIG.triggerType.automatic) {
-                    const executeScript = {
-                        target: { allFrames: true },
-                        func: scriptId => {
-                            if (typeof window._scripty?.[scriptId] === "function") {
-                                window._scripty[scriptId]();
-                            }
-                        },
-                        world: "MAIN",
-                        args: [id]
-                    };
-
-                    // Execute on matching tabs
-                    const tabs = await CONFIG.browserClient.tabs.query({});
-                    for (const tab of tabs) {
-                        if (matches.some(match => 
-                            new URLPatternMatcher().matchPattern(tab.url, match)
-                        )) {
-                            try {
-                                await CONFIG.browserClient.scripting.executeScript({
-                                    ...executeScript,
-                                    target: { tabId: tab.id }
-                                });
-                            } catch (error) {
-                                console.error(`Failed to execute script on tab ${tab.id}:`, error);
-                            }
-                        }
-                    }
+                } else {
+                    await CONFIG.browserClient.userScripts.register([scriptConfig]);
                 }
 
                 return true;
             } catch (error) {
                 console.error("Error registering script:", error);
+                return false;
+            }
+        }
+
+        async unregisterScript(scriptId) {
+            try {
+                await CONFIG.browserClient.userScripts.unregister({ ids: [scriptId] });
+                return true;
+            } catch (error) {
+                console.error("Error unregistering script:", error);
                 return false;
             }
         }
@@ -137,27 +113,52 @@
                     case "getScriptListFromStorage":
                         sendResponse(this.scripts);
                         break;
-                    
                     case "createScript":
+                        this.createScript(message.script).then(sendResponse);
+                        return true;
                     case "updateScript":
-                        this.saveScript(message.data)
-                            .then(sendResponse)
-                            .catch(error => sendResponse({ success: false, error }));
+                        this.updateScript(message.script).then(sendResponse);
                         return true;
-                    
                     case "deleteScript":
-                        this.deleteScript(message.id)
-                            .then(sendResponse)
-                            .catch(error => sendResponse({ success: false, error }));
+                        this.deleteScript(message.scriptId).then(sendResponse);
                         return true;
-
                     case "executeScript":
-                        this.executeScript(message.scriptId, message.tabId)
-                            .then(sendResponse)
-                            .catch(error => sendResponse({ success: false, error }));
+                        this.executeScript(message.scriptId, sender.tab.id).then(sendResponse);
                         return true;
                 }
             });
+        }
+
+        async createScript(script) {
+            await this.registerScript(script);
+            this.scripts.push(script);
+            await CONFIG.browserClient.storage.local.set({ [script.id]: script });
+            this.notifyPopupUpdate();
+            return script;
+        }
+
+        async updateScript(script) {
+            await this.registerScript(script);
+            const index = this.scripts.findIndex(s => s.id === script.id);
+            if (index !== -1) {
+                this.scripts[index] = script;
+            }
+            await CONFIG.browserClient.storage.local.set({ [script.id]: script });
+            this.notifyPopupUpdate();
+            return script;
+        }
+
+        async deleteScript(scriptId) {
+            await this.unregisterScript(scriptId);
+            this.scripts = this.scripts.filter(s => s.id !== scriptId);
+            await CONFIG.browserClient.storage.local.remove(scriptId);
+            this.notifyPopupUpdate();
+            return true;
+        }
+
+        notifyPopupUpdate() {
+            // Notify all popup windows to update
+            CONFIG.browserClient.runtime.sendMessage({ action: "scriptsUpdated" });
         }
 
         setupTabListener() {
@@ -215,32 +216,6 @@
                 return { success: true };
             } catch (error) {
                 console.error(`Failed to execute script ${scriptId}:`, error);
-                return { success: false, error };
-            }
-        }
-
-        async saveScript(script) {
-            try {
-                const success = await this.registerScript(script);
-                if (success) {
-                    await CONFIG.browserClient.storage.local.set({ [script.id]: script });
-                    this.scripts = this.scripts.filter(s => s.id !== script.id);
-                    this.scripts.push(script);
-                    return { success: true, script };
-                }
-                return { success: false, error: "Failed to register script" };
-            } catch (error) {
-                return { success: false, error };
-            }
-        }
-
-        async deleteScript(scriptId) {
-            try {
-                await CONFIG.browserClient.userScripts.unregister({ ids: [scriptId] });
-                await CONFIG.browserClient.storage.local.remove(scriptId);
-                this.scripts = this.scripts.filter(script => script.id !== scriptId);
-                return { success: true };
-            } catch (error) {
                 return { success: false, error };
             }
         }

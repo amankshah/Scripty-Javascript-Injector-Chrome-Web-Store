@@ -323,38 +323,86 @@
     // =============================================
     class PopupUI {
         constructor() {
-            if (!(this instanceof PopupUI)) {
-                throw new TypeError("Cannot call a class as a function");
-            }
-            this.currentTab = {};
-            this.tabId = -1;
+            this.scriptManager = new ScriptManager();
             this.scriptArray = [];
+            this.tabId = -1;
+            this.init();
         }
 
-        setTabConfig(tab) {
-            this.currentTab = tab;
+        async init() {
+            // Get current tab
+            const [tab] = await CONFIG.browserClient.tabs.query({ active: true, currentWindow: true });
             this.tabId = tab.id;
+            
+            // Load scripts from storage
+            const scripts = await CONFIG.browserClient.storage.local.get(null);
+            this.scriptArray = Object.values(scripts).filter(item => item.id && item.id.startsWith('script_'));
+            
+            this.setupEventListeners();
+            this.renderScriptList();
         }
 
-        setScriptArray(scripts) {
-            this.scriptArray = scripts;
+        setupEventListeners() {
+            // Listen for script updates from background
+            CONFIG.browserClient.runtime.onMessage.addListener((message) => {
+                if (message.action === "scriptsUpdated") {
+                    this.init(); // Reload everything when scripts are updated
+                }
+            });
+
+            document.querySelector("#popupRoot").addEventListener("click", event => {
+                const target = event.target;
+                const scriptButton = target.closest(CONFIG.selectors.scriptButton);
+                const editButton = target.closest(CONFIG.selectors.editButton);
+                const viewAllButton = target.closest(CONFIG.selectors.viewall);
+                
+                if (scriptButton) {
+                    const scriptId = scriptButton.dataset.sid;
+                    this.scriptManager.handleScriptRun(this.scriptArray, scriptId, this.tabId);
+                } else if (editButton) {
+                    const scriptId = editButton.dataset.sid;
+                    CONFIG.browserClient.runtime.openOptionsPage();
+                    // Send message to options page to edit specific script
+                    CONFIG.browserClient.runtime.sendMessage({
+                        action: "editScript",
+                        scriptId: scriptId
+                    });
+                } else if (viewAllButton) {
+                    // Close popup and open options page
+                    window.close();
+                    CONFIG.browserClient.runtime.openOptionsPage();
+                } else if (target.matches(CONFIG.selectors.addNewScriptButton)) {
+                    CONFIG.browserClient.runtime.openOptionsPage();
+                } else if (target.matches(CONFIG.selectors.downloadScript)) {
+                    CONFIG.browserClient.runtime.openOptionsPage();
+                }
+            });
         }
 
         renderScriptList() {
             const listElement = document.querySelector("#list");
-            const scripts = new ScriptManager().getScriptsForCurrentUrl(
-                this.currentTab.url,
-                this.scriptArray,
-                { type: "all" }
-            );
+            if (!listElement) return;
+
+            const scripts = this.scriptArray.filter(script => {
+                if (script.disable) return false;
+                if (script.trigger.type === CONFIG.triggerType.manual) return true;
+                
+                // For automatic scripts, check if they match the current URL
+                if (script.filter.matches && script.filter.matches.length > 0) {
+                    return script.filter.matches.some(match => 
+                        new URLPatternMatcher().matchPattern(this.currentTab.url, match)
+                    );
+                }
+                return false;
+            });
 
             const scriptButtons = scripts.map(script => this.getPopupScriptButton(script)).join("");
             
-            if (scripts.length !== 0) {
-                document.querySelector(".no-script-fallback").classList.add("bottomfix");
+            if (scripts.length === 0) {
+                listElement.innerHTML = '<div class="no-script-fallback">No scripts available</div>';
+            } else {
+                listElement.innerHTML = scriptButtons;
             }
-            
-            listElement.innerHTML = scriptButtons;
         }
 
         getPopupScriptButton(script) {
@@ -377,61 +425,12 @@
                 </div>
             `;
         }
-
-        events() {
-            const scriptManager = new ScriptManager();
-            document.querySelector("#popupRoot").addEventListener("click", event => {
-                const target = event.target;
-                const scriptButton = target.closest(CONFIG.selectors.scriptButton);
-                const editButton = target.closest(CONFIG.selectors.editButton);
-                const viewAllButton = target.closest(CONFIG.selectors.viewall);
-                
-                if (scriptButton) {
-                    const scriptId = scriptButton.dataset.sid;
-                    scriptManager.handleScriptRun(this.scriptArray, scriptId, this.tabId);
-                } else if (editButton) {
-                    const scriptId = editButton.dataset.sid;
-                    CONFIG.browserClient.runtime.openOptionsPage();
-                    // Send message to options page to edit specific script
-                    CONFIG.browserClient.runtime.sendMessage({
-                        action: "editScript",
-                        scriptId: scriptId
-                    });
-                } else if (viewAllButton) {
-                    // Close popup and open options page
-                    window.close();
-                    CONFIG.browserClient.runtime.openOptionsPage();
-                } else if (target.matches(CONFIG.selectors.addNewScriptButton)) {
-                    CONFIG.browserClient.runtime.openOptionsPage();
-                } else if (target.matches(CONFIG.selectors.downloadScript)) {
-                    CONFIG.browserClient.runtime.openOptionsPage();
-                }
-            });
-        }
-
-        init() {
-            this.renderScriptList();
-            this.events();
-        }
     }
 
     // =============================================
     // Initialize popup when DOM is loaded
     // =============================================
     window.addEventListener("DOMContentLoaded", () => {
-        const popup = new PopupUI();
-        CONFIG.browserClient.runtime.sendMessage(
-            { action: "getScriptListFromStorage" },
-            scripts => {
-                popup.setScriptArray(scripts);
-                CONFIG.browserClient.tabs.query(
-                    { active: true, currentWindow: true },
-                    tabs => {
-                        popup.setTabConfig(tabs[0]);
-                        popup.init();
-                    }
-                );
-            }
-        );
+        new PopupUI();
     });
 })();
